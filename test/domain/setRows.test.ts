@@ -1,4 +1,8 @@
-import { buildSetRows } from "@/domain/setRows";
+import {
+  appendBlankSet,
+  applyWeightDelta,
+  buildSetRows,
+} from "@/domain/setRows";
 import type { SetRow } from "@/repos/setsRepo";
 
 function set(over: Partial<SetRow>): SetRow {
@@ -63,4 +67,36 @@ test("more logged than planned: extra rows keep sequential labels", () => {
   const rows = buildSetRows(0, 1, existing);
 
   expect(rows.map((r) => r.label)).toEqual(["1", "2", "3"]);
+});
+
+test("applyWeightDelta: blank counts as 0, never goes below 0", () => {
+  expect(applyWeightDelta(null, 2.5)).toBe(2.5);
+  expect(applyWeightDelta(10, -2.5)).toBe(7.5);
+  expect(applyWeightDelta(1, -5)).toBe(0);
+});
+
+test("appendBlankSet: adds a work row and relabels work section", () => {
+  const rows = buildSetRows(1, 2, []);
+
+  const next = appendBlankSet(rows, "work");
+
+  expect(next.map((r) => r.label)).toEqual(["W1", "1", "2", "3"]);
+  expect(next.map((r) => r.type)).toEqual(["warmup", "work", "work", "work"]);
+  expect(next[3]).toMatchObject({ setId: null, weightKg: null, reps: null });
+  // original array untouched
+  expect(rows).toHaveLength(3);
+});
+
+test("appendBlankSet: adds a warmup row and relabels warmup section", () => {
+  const rows = buildSetRows(1, 1, []);
+
+  const next = appendBlankSet(rows, "warmup");
+
+  expect(next.filter((r) => r.type === "warmup").map((r) => r.label)).toEqual([
+    "W1",
+    "W2",
+  ]);
+  expect(next.filter((r) => r.type === "work").map((r) => r.label)).toEqual([
+    "1",
+  ]);
 });

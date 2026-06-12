@@ -65,3 +65,39 @@ function toRow(
     setId: logged.id,
   };
 }
+
+/**
+ * Apply a PlatePad delta to the active row's weight, clamped at 0. A blank
+ * row (null) counts as 0, so `+2.5` from blank yields 2.5 and no delta can
+ * push weight negative (decision: bodyweight 0 is the floor).
+ *
+ * Example: applyWeightDelta(null, 2.5) → 2.5; applyWeightDelta(1, -5) → 0
+ */
+export function applyWeightDelta(current: number | null, deltaKg: number): number {
+  return Math.max(0, (current ?? 0) + deltaKg);
+}
+
+/**
+ * Append a blank set of `type` and relabel every row so warmups read
+ * `W1…Wn` and work `1…n` in order (warmups always precede work). Returns a
+ * new array; never mutates the input.
+ *
+ * Example: appendBlankSet([W1, 1], "work") → [W1, 1, 2]
+ */
+export function appendBlankSet(
+  rows: SetRowState[],
+  type: "warmup" | "work",
+): SetRowState[] {
+  const blank: SetRowState = { label: "", type, weightKg: null, reps: null, setId: null };
+  return relabel([...rows, blank]);
+}
+
+/** Renumber rows in place-order: warmups `W1…Wn`, work `1…n`. */
+function relabel(rows: SetRowState[]): SetRowState[] {
+  let warmup = 0;
+  let work = 0;
+  return rows.map((row) => {
+    const label = row.type === "warmup" ? `W${++warmup}` : `${++work}`;
+    return { ...row, label };
+  });
+}
