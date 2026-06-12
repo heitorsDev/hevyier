@@ -1,5 +1,7 @@
 import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
+import type { MuscleGroup, SubMuscle } from "@/domain/muscles";
+
 // All timestamps across the schema are integer epoch milliseconds —
 // SQLite has no date type and ms epochs compare/sort without parsing.
 
@@ -23,8 +25,10 @@ export const exerciseMuscles = sqliteTable("exercise_muscles", {
   exerciseId: integer("exercise_id")
     .notNull()
     .references(() => exercises.id, { onDelete: "cascade" }),
-  muscleGroup: text("muscle_group").notNull(),
-  subMuscle: text("sub_muscle").notNull(),
+  // $type narrows reads/writes to the domain taxonomy without changing
+  // the stored TEXT — no CHECK constraint, validation lives in the app.
+  muscleGroup: text("muscle_group").$type<MuscleGroup>().notNull(),
+  subMuscle: text("sub_muscle").$type<SubMuscle>().notNull(),
 });
 
 export const workoutPlans = sqliteTable("workout_plans", {
