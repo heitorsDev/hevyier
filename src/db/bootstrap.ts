@@ -1,6 +1,5 @@
 import type { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
-import { useEffect, useState } from "react";
 
 import { openAppDatabase } from "@/db/client";
 import migrations from "@/db/migrations/migrations";
@@ -20,16 +19,23 @@ export const appDb: ExpoSQLiteDatabase = openAppDatabase();
  */
 export function useDatabaseReady(): boolean {
   const { success, error } = useMigrations(appDb, migrations);
-  const [seeded, setSeeded] = useState<boolean>(false);
-  useEffect(() => {
-    if (!success) return;
-    seedDatabase(appDb);
-    setSeeded(true);
-  }, [success]);
   if (error) {
     throw new Error(
       `database migration failed: ${error.message}; expected bundled migrations in src/db/migrations to apply cleanly`,
     );
   }
-  return seeded;
+  if (!success) return false;
+  runSeedOnce();
+  return true;
+}
+
+// Seeding happens during the first migrated render, not in an effect:
+// it is synchronous and idempotent (settings.seeded guard), and it must
+// finish before any child screen queries the DB. The module flag only
+// skips redundant guard checks on re-renders.
+let seedHasRun = false;
+function runSeedOnce(): void {
+  if (seedHasRun) return;
+  seedDatabase(appDb);
+  seedHasRun = true;
 }
