@@ -43,12 +43,18 @@ interface InitialState {
 export function useSetRows(
   sessionId: number,
   sessionExerciseId: number,
+  // Fired after a set is checked off (decision #6 — starts the rest timer).
+  // Undefined in History edit mode so finished sessions never start a timer.
+  onSetChecked?: (type: "warmup" | "work", exerciseName: string) => void,
 ): SetRowsController {
   const [initial] = useState<InitialState>(() =>
     loadInitialState(sessionId, sessionExerciseId),
   );
   const [rows, setRows] = useState<SetRowState[]>(initial.rows);
   const [activeIndex, setActiveIndex] = useState<number>(initial.activeIndex);
+  const notifyChecked = onSetChecked
+    ? (type: "warmup" | "work") => onSetChecked(type, initial.exerciseName)
+    : undefined;
 
   const setWeight = (index: number, kg: number) =>
     patchRow(setRows, index, (row) => ({ ...row, weightKg: kg }));
@@ -61,7 +67,7 @@ export function useSetRows(
     }));
 
   const toggleCheck = (index: number) =>
-    handleToggle(sessionExerciseId, rows, index, setRows, setActiveIndex);
+    handleToggle(sessionExerciseId, rows, index, setRows, setActiveIndex, notifyChecked);
   const addSet = (type: "warmup" | "work") =>
     setRows((prev) => appendBlankSet(prev, type));
 
@@ -120,13 +126,14 @@ function handleToggle(
   index: number,
   setRows: SetStateRows,
   setActiveIndex: (index: number) => void,
+  onChecked: ((type: "warmup" | "work") => void) | undefined,
 ): void {
   const row = rows[index];
   if (row.setId !== null) {
     uncheckRow(setRows, index, row.setId);
     return;
   }
-  checkRow(sessionExerciseId, rows, index, setRows, setActiveIndex);
+  checkRow(sessionExerciseId, rows, index, setRows, setActiveIndex, onChecked);
 }
 
 /** Un-check: delete the set; weight/reps stay in local state (decision #5). */
@@ -142,6 +149,7 @@ function checkRow(
   index: number,
   setRows: SetStateRows,
   setActiveIndex: (index: number) => void,
+  onChecked: ((type: "warmup" | "work") => void) | undefined,
 ): void {
   const row = rows[index];
   if (!isCheckable(row)) return;
@@ -152,9 +160,9 @@ function checkRow(
     reps: row.reps as number,
     loggedAt: Date.now(),
   });
-  // Phase 5: start rest timer
   patchRow(setRows, index, (current) => ({ ...current, setId: id }));
   setActiveIndex(nextBlankIndex(rows, index));
+  onChecked?.(row.type); // starts the rest timer (decision #6)
 }
 
 /** Checkable iff weight ≥ 0 (bodyweight 0 allowed) and reps ≥ 1 (decision #5). */

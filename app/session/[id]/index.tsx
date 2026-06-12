@@ -9,6 +9,7 @@ import { Alert, Modal, Pressable, ScrollView, Text, View, StyleSheet } from "rea
 
 import { BrutalButton } from "@/components/BrutalButton";
 import { PressableRow } from "@/components/PressableRow";
+import { RestTimerBanner } from "@/components/RestTimerBanner";
 import { appDb } from "@/db/bootstrap";
 import {
   getExercise,
@@ -73,6 +74,7 @@ export default function SessionScreen() {
         />
       ))}
       <BrutalButton label="+ ADD EXERCISE" onPress={() => setPickerOpen(true)} />
+      <RestTimerBanner />
       <View style={styles.footer}>
         <BrutalButton
           label="FINISH"

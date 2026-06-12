@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
   useLocalSearchParams,
   useRouter,
@@ -7,11 +7,21 @@ import {
 import { ScrollView, Text, View, StyleSheet } from "react-native";
 
 import { BrutalButton } from "@/components/BrutalButton";
+import { LastSessionBlock } from "@/components/LastSessionBlock";
+import { NudgeBanner } from "@/components/NudgeBanner";
 import { PlatePad } from "@/components/PlatePad";
+import { RestTimerBanner } from "@/components/RestTimerBanner";
 import { SetSection } from "@/components/SetSection";
 import { appDb } from "@/db/bootstrap";
 import type { SetRowState } from "@/domain/setRows";
+import { shouldNudge } from "@/domain/overloadNudge";
+import { useRestTimer } from "@/hooks/useRestTimer";
 import { useSetRows } from "@/hooks/useSetRows";
+import {
+  findLastSessionSetsForExercise,
+  lastTwoWorkSetLists,
+  type LoggedSetView,
+} from "@/repos/exerciseHistoryRepo";
 import { getExercise } from "@/repos/exercisesRepo";
 import {
   listSessionExercises,
@@ -22,6 +32,13 @@ import { border, colors, fontSize } from "@/theme/tokens";
 interface NeighbourNav {
   prev: SessionExerciseRow | undefined;
   next: SessionExerciseRow | undefined;
+}
+
+// The greyed last-session reference + overload nudge for this exercise.
+// Null in History edit mode, where neither is shown (decision #8).
+interface ReferenceView {
+  lastSets: LoggedSetView[];
+  nudge: boolean;
 }
 
 /**
@@ -40,7 +57,15 @@ export default function ExerciseLoggingScreen() {
   const sessionExerciseId = Number(params.sessionExerciseId);
   const editMode = params.mode === "edit";
 
-  const setRows = useSetRows(sessionId, sessionExerciseId);
+  const timer = useRestTimer();
+  const setRows = useSetRows(
+    sessionId,
+    sessionExerciseId,
+    editMode ? undefined : timer.start,
+  );
+  const [reference] = useState<ReferenceView | null>(() =>
+    editMode ? null : loadReference(sessionId, sessionExerciseId),
+  );
   const go = useCallback(
     (seId: number) => navigateTo(router, sessionId, seId, params.mode),
     [router, sessionId, params.mode],
@@ -50,6 +75,8 @@ export default function ExerciseLoggingScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.title}>{setRows.exerciseName.toUpperCase()}</Text>
+      {reference?.nudge ? <NudgeBanner /> : null}
+      {reference ? <LastSessionBlock sets={reference.lastSets} /> : null}
       <SetSection
         title="WARMUP"
         type="warmup"
@@ -73,12 +100,8 @@ export default function ExerciseLoggingScreen() {
         onAddSet={setRows.addSet}
       />
 
-      {/*
-        editMode (History reuse, Phase 6/8) suppresses the live rest-timer
-        and next-set nudge. Neither exists yet, so this gate is a no-op stub
-        that future phases render inside.
-      */}
-      {editMode ? null : <RestTimerSlot />}
+      {/* History edit mode never starts a timer, so the banner stays null. */}
+      {editMode ? null : <RestTimerBanner />}
 
       <PlatePad onDelta={setRows.nudgeActiveWeight} />
 
@@ -103,12 +126,21 @@ export default function ExerciseLoggingScreen() {
 }
 
 /**
- * Placeholder for the live workout's rest-timer / next-set nudge (Phase 5).
- * Renders nothing today; gated out in edit mode so History reuse never
- * shows a running timer.
+ * Greyed last-session reference + overload nudge for the exercise behind
+ * this session_exercise (decision #7). DB reads run once in the screen's
+ * lazy initializer — never during render.
  */
-function RestTimerSlot() {
-  return null;
+function loadReference(
+  sessionId: number,
+  sessionExerciseId: number,
+): ReferenceView {
+  const se = listSessionExercises(appDb, sessionId).find(
+    (row) => row.id === sessionExerciseId,
+  );
+  if (!se) return { lastSets: [], nudge: false };
+  const lastSets = findLastSessionSetsForExercise(appDb, se.exerciseId) ?? [];
+  const nudge = shouldNudge(lastTwoWorkSetLists(appDb, se.exerciseId));
+  return { lastSets, nudge };
 }
 
 /** Rows of one section paired with their absolute index in the full list. */
