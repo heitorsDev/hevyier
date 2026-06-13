@@ -1,56 +1,70 @@
-# Welcome to your Expo app 👋
+# hevyier
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+An open-source clone of [Hevy](https://www.hevy.com/), the gym-workout tracker.
 
-## Get started
+Single-user, **local-only** Android app for logging your workouts. Built to fix
+three things that annoyed me about Hevy and similar apps:
 
-1. Install dependencies
+- **Set registration is too slow** — too many taps, keyboard-heavy, tiny touch
+  targets. In hevyier, logging a set is fast and needs **zero keyboard** by default.
+- **Analytics are paywalled** — here every chart and stat is free.
+- **No ownership or extensibility** — your data lives in a local SQLite DB on
+  your device. No account, no cloud, no sync, no tracking.
 
-   ```bash
-   npm install
-   ```
+## Features
 
-2. Start the app
+- **Today** — start a workout from your scheduled plan or freestyle, resume an
+  active session, see your last session at a glance.
+- **Plans** — build reusable workout plans and assign them to days of the week.
+- **Library** — manage exercises tagged by equipment and muscle group.
+- **History** — browse, edit, and delete past sessions.
+- **Stats** — free analytics: charts and per-muscle-group volume series.
 
-   ```bash
-   npx expo start
-   ```
+## Tech stack
 
-In the output, you'll find options to open the app in a
+- **Framework**: [Expo](https://expo.dev) (managed workflow), React Native
+- **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction) (file-based)
+- **Database**: [expo-sqlite](https://docs.expo.dev/versions/latest/sdk/sqlite/), local only
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
+- **Charts**: [victory-native](https://commerce.nearform.com/open-source/victory-native/) + [Skia](https://shopify.github.io/react-native-skia/)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Install (Android)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Releases are **signed Android APKs** published to
+[GitHub Releases](https://github.com/heitorsDev/hevyier/releases).
 
-## Get a fresh project
+1. Open the [latest release](https://github.com/heitorsDev/hevyier/releases/latest).
+2. Download the `hevyier-vX.Y.Z.apk` asset.
+3. On your phone, open the APK and allow installs from your browser/file manager
+   when prompted ("Install unknown apps").
+4. Install. Updates: download a newer APK and install over the top — the signing
+   key is stable, so your data is preserved.
 
-When you're ready, run:
+> iOS is not distributed. The app is Android-only for now.
+
+## Develop
+
+Requires Node 20+ and the Android SDK (Android Studio).
 
 ```bash
-npm run reset-project
+npm install        # install deps
+npm start          # start Expo dev server
+npm run android    # build + run on a device/emulator
+npm test           # run Jest tests
+npm run lint       # ESLint
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Build a release APK locally
 
-### Other setup steps
+```bash
+npm run apk        # expo prebuild + gradlew assembleRelease
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Signing config lives in `plugins/withReleaseSigning` and reads from
+`HEVYIER_*` env vars. See [`docs/BUILD.md`](docs/BUILD.md) for build details and
+[`docs/RELEASING.md`](docs/RELEASING.md) for the release runbook (tag `v*` →
+CI builds and publishes the APK via `.github/workflows/release.yml`).
 
-## Learn more
+## License
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Open source. See repository for details.
