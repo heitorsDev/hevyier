@@ -9,6 +9,9 @@ dist/
 web-build/
 expo-env.d.ts
 
+# Web chart engine wasm, copied from node_modules on web:build (7.7MB)
+/public/canvaskit.wasm
+
 # Native
 .kotlin/
 *.orig.*

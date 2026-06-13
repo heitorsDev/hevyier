@@ -4,6 +4,7 @@ import { renderRouter, screen } from "expo-router/testing-library";
 // which doesn't exist under jest — stub the bootstrap hook. Repo tests
 // exercise the actual schema via better-sqlite3 instead.
 jest.mock("@/db/bootstrap", () => ({
+  useWebRuntimeWarm: (): boolean => true,
   useDatabaseReady: (): boolean => true,
   appDb: {},
 }));

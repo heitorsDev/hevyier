@@ -1,10 +1,19 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
-import { useDatabaseReady } from "@/db/bootstrap";
+import { useDatabaseReady, useWebRuntimeWarm } from "@/db/bootstrap";
 import { colors, fontSize } from "@/theme/tokens";
 
 export default function RootLayout() {
+  // Two-stage gate: on web the sqlite worker (wasm + OPFS) and CanvasKit
+  // must warm up before any synchronous open / chart render. Native
+  // returns warm immediately, so this collapses to the old single gate.
+  const warm = useWebRuntimeWarm();
+  if (!warm) return null;
+  return <ReadyGate />;
+}
+
+function ReadyGate() {
   const databaseReady = useDatabaseReady();
   // Render nothing until migrated + seeded — the local DB finishes in
   // milliseconds, so a spinner would only flash (PRODUCT.md).
