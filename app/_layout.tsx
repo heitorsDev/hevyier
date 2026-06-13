@@ -27,6 +27,7 @@ export default function RootLayout() {
           options={{ presentation: "fullScreenModal", headerShown: false }}
         />
         <Stack.Screen name="settings" options={{ title: "SETTINGS" }} />
+        <Stack.Screen name="history/[id]" options={{ title: "SESSION" }} />
         <Stack.Screen name="exercise/[id]" options={{ title: "EXERCISE" }} />
         <Stack.Screen name="plan/[id]" options={{ title: "PLAN" }} />
       </Stack>
