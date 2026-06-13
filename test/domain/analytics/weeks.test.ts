@@ -1,4 +1,4 @@
-import { mondayStartMs, weeksBetween } from "@/domain/analytics/weeks";
+import { mondayStartMs, recentWeekStarts, weeksBetween } from "@/domain/analytics/weeks";
 
 // Local-time constructor keeps these aligned with the production fns,
 // which use the device's local calendar.
@@ -35,5 +35,19 @@ describe("weeksBetween", () => {
     const earlier = mondayStartMs(local(2026, 6, 1));
     const later = mondayStartMs(local(2026, 6, 22));
     expect(weeksBetween(later, earlier)).toBe(3);
+  });
+});
+
+describe("recentWeekStarts", () => {
+  it("returns `count` Mondays, oldest first, current week last", () => {
+    const now = local(2026, 6, 10); // week of Mon Jun 8
+    const weeks = recentWeekStarts(now, 4);
+    expect(weeks).toHaveLength(4);
+    expect(weeks[3]).toBe(mondayStartMs(now));
+    expect(weeks[0]).toBe(mondayStartMs(local(2026, 5, 18)));
+  });
+
+  it("rejects a non-positive count", () => {
+    expect(() => recentWeekStarts(local(2026, 6, 10), 0)).toThrow(/count is 0/);
   });
 });

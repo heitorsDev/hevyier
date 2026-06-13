@@ -42,3 +42,20 @@ export function weeksBetween(laterWeekStart: number, earlierWeekStart: number): 
   // Round: DST shifts a week-span by ±1h, never a half-week.
   return Math.round((laterWeekStart - earlierWeekStart) / (7 * DAY_MS));
 }
+
+/**
+ * The last `count` Monday-week starts ending with the week of `nowMs`,
+ * oldest first — the fixed x-axis for the MUSCLE VOLUME bars.
+ *
+ * Example: recentWeekStarts(now, 8) → 8 Mondays, current week last.
+ */
+export function recentWeekStarts(nowMs: number, count: number): number[] {
+  if (!Number.isInteger(count) || count <= 0) {
+    throw new Error(`count is ${count}, expected a positive integer`);
+  }
+  const current = mondayStartMs(nowMs);
+  return Array.from(
+    { length: count },
+    (_, index) => current - (count - 1 - index) * 7 * DAY_MS,
+  );
+}
