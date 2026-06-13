@@ -1,7 +1,7 @@
 # hevyier — Implementation Plan
 _Date: 2026-06-12 · Implements: [2026-06-01-hevyier-design.md](./2026-06-01-hevyier-design.md)_
 
-## Progress (as of 2026-06-13, branch `feat/exercises-plans-ui`)
+## Progress (as of 2026-06-13, branch `feat/exercises-plans-ui`, app version `1.1.0`)
 
 | Phase | Status | Evidence |
 |---|---|---|
@@ -11,11 +11,13 @@ _Date: 2026-06-12 · Implements: [2026-06-01-hevyier-design.md](./2026-06-01-hev
 | 3 — Plans, schedule, settings | ✅ Done | `app/(tabs)/plans.tsx`, `app/plan/[id].tsx`, `app/settings.tsx`, `domain/planReorder.ts` (commit `6d817fe`) |
 | 4 — Session core | ✅ Done | `app/session/[id]/{index,log/[sessionExerciseId]}.tsx`, `app/(tabs)/index.tsx`, `SetRow`/`PlatePad`/`RepStepper`/`SetSection`, `domain/setRows.ts` (commits `e85c6aa`,`30c566d`,`01452c9`,`711b2ef`) |
 | 5 — Rest timer, last-session, nudge | ✅ Done | `hooks/useRestTimer.tsx`, `lib/restNotifier.ts`, `RestTimerBanner`/`LastSessionBlock`/`NudgeBanner`, `domain/overloadNudge.ts`, `repos/exerciseHistoryRepo.ts` (commits `6bf25b5`,`1e64a4d`,`5855f1d`) |
-| 6 — History | ⬜ Not started | `app/(tabs)/history.tsx` is still `ScreenPlaceholder`; no `app/history/[id].tsx` |
-| 7 — Analytics | ⬜ Not started | `app/(tabs)/analytics.tsx` is still `ScreenPlaceholder`; no `src/charts/`, no `src/domain/analytics/` |
-| 8 — Distribution | ⬜ Not started | deps (`expo-updates`/`victory-native`/`skia`) installed + Android `package` set; no `eas.json`, no `runtimeVersion`/update URL in `app.json` |
+| 6 — History | ✅ Done | `app/(tabs)/history.tsx`, `app/history/[id].tsx`, `domain/{historyList,historyDetail}.ts`, `repos/historyRepo.ts`, `History*` components (branch `feat/history`, merged) |
+| 7 — Analytics | ✅ Done | `app/(tabs)/analytics.tsx`, `src/charts/{TrendLine,WeeklyBars,Heatmap}.tsx`, `src/domain/analytics/*`, `repos/analyticsRepo.ts`, `ExerciseAnalytics`/`MuscleVolumeBars`/`PrBadgeRow`/`ExercisePicker`/`AnalyticsSection` (branch `feat/analytics`, merged) |
+| 8 — Distribution | 🚧 Blocked | deps installed + Android `package` set; no `eas.json`, no `runtimeVersion`/update URL. **Needs interactive `eas init`/`eas login` + physical device — cannot run headless.** |
 
-Next up: Phase 6 (History).
+Next up: Phase 8 (Distribution) — requires your EAS account auth (run `eas login` / `eas init` yourself), then APK build + on-device smoke checklist.
+
+Phases 6 + 7 were built in parallel git worktrees (`feat/history`, `feat/analytics`) off `ac71ef5`, disjoint file sets, merged no-conflict. Combined verify: `npx tsc --noEmit` clean, `npm test` = 35 suites / 162 tests green. Caveat: chart wrappers (`src/charts/*`) render via victory-native + Skia (native-only) so they are mocked under jest — on-device chart render is an unverified manual smoke-check (Phase 8 territory).
 
 ## Decision Log (resolved 2026-06-12 interview)
 
@@ -190,7 +192,7 @@ Rules from CLAUDE.md apply throughout: functions 4–20 lines, files <500 lines,
 6. Tests: `shouldNudge` matrix (equal → true; 1 session / different length / different weight / different order → false), notification schedule/cancel mocked behind a project-owned `restNotifier` interface (named fake in tests, per CLAUDE.md).
 7. **Done when**: ✓ a set → banner counts down; lock phone → vibrating notification at expiry; nudge appears after two identical sessions.
 
-### Phase 6 — History ⬜ NOT STARTED
+### Phase 6 — History ✅
 
 **Goal**: browse, edit, delete past sessions.
 
@@ -202,7 +204,7 @@ Rules from CLAUDE.md apply throughout: functions 4–20 lines, files <500 lines,
 6. Tests: history list aggregation query (volume/duration math), edit-mode prune reuse.
 7. **Done when**: past mistakes fixable from History; junk sessions deletable.
 
-### Phase 7 — Analytics ⬜ NOT STARTED
+### Phase 7 — Analytics ✅
 
 **Goal**: every chart from spec, all free, all local.
 
@@ -221,7 +223,7 @@ Rules from CLAUDE.md apply throughout: functions 4–20 lines, files <500 lines,
 5. Tests: every domain fn — week bucketing across year boundary, multi-muscle attribution, streak gaps, PR ties (earliest wins, document).
 6. **Done when**: all spec analytics render from real logged data; tab opens with no perceptible delay.
 
-### Phase 8 — Distribution ⬜ NOT STARTED
+### Phase 8 — Distribution 🚧 BLOCKED (needs EAS auth + device)
 
 **Goal**: installed on your phone, updatable forever.
 
