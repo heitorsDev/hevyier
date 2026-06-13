@@ -8,6 +8,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch: {} # manual trigger for debugging the build on main
 
 permissions:
   contents: write # required to create the Release and upload the APK
@@ -49,7 +50,7 @@ jobs:
 
       - name: Assemble signed release APK
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon
+        run: ./gradlew assembleRelease --no-daemon --stacktrace --info 2>&1 | grep -viE "^> Task|UP-TO-DATE|SKIPPED|NO-SOURCE|Resolving |Caching |input properties|Watching |file system|Invalidating|registering|snapshotting" || true
         env:
           HEVYIER_STORE_FILE: ${{ runner.temp }}/release.jks
           HEVYIER_STORE_PASSWORD: ${{ secrets.HEVYIER_STORE_PASSWORD }}
