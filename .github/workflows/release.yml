@@ -45,12 +45,15 @@ jobs:
 
       # Expo prebuild defaults MaxMetaspaceSize to 512m, which OOMs the
       # lintVitalRelease worker on CI (daemon dies mid-build). Bump it.
+      # The leading \n is required: the generated gradle.properties has no
+      # trailing newline, so a bare append would glue onto the last property
+      # (expo.inlineModules.watchedDirectories) and corrupt an autolinking arg.
       - name: Raise Gradle JVM memory
-        run: echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g" >> android/gradle.properties
+        run: printf '\norg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g\n' >> android/gradle.properties
 
       - name: Assemble signed release APK
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon --stacktrace --info 2>&1 | grep -viE "^> Task|UP-TO-DATE|SKIPPED|NO-SOURCE|Resolving |Caching |input properties|Watching |file system|Invalidating|registering|snapshotting" || true
+        run: ./gradlew assembleRelease --no-daemon
         env:
           HEVYIER_STORE_FILE: ${{ runner.temp }}/release.jks
           HEVYIER_STORE_PASSWORD: ${{ secrets.HEVYIER_STORE_PASSWORD }}
