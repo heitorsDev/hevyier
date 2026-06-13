@@ -41,3 +41,9 @@ example
 # generated native folders
 /ios
 /android
+
+# release artifacts + signing material (never commit a keystore)
+*.apk
+*.aab
+*.keystore
+*.jks

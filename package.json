@@ -47,7 +47,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "test": "jest",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "apk": "expo prebuild --platform android && cd android && ./gradlew assembleRelease"
   },
   "private": true
 }

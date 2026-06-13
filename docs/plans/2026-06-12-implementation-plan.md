@@ -23,7 +23,7 @@ Phases 6 + 7 were built in parallel git worktrees (`feat/history`, `feat/analyti
 
 | # | Topic | Decision |
 |---|---|---|
-| 1 | Platform | Android only. Local release APK for install; EAS Update for OTA JS updates; rebuild APK only on native dep changes. |
+| 1 | Platform | Android only. Local Gradle release APK for install — no EAS, no cloud, offline (revised 2026-06-13). No OTA: every change ships by rebuild + reinstall. Debug-key signing by default (solo sideload). |
 | 2 | Set rows | Pre-created from plan counts, UI-state only until ✓ (row inserted into `sets` on ✓). "+ add set" button per section (warmup/work). Skipped/blank rows never persisted — vanish at finish. Plan counts never mutated by session deviations. |
 | 3 | Session end | Explicit "Finish" button sets `finished_at`. Resume: on launch, `finished_at IS NULL` → Today tab shows "Resume session". "Discard" (menu) deletes session + sets, with confirm (irreversible). No auto-finish timeout. |
 | 4 | Freestyle / deviations | Today tab secondary "Start empty session" action. "+ add exercise" (library picker) available in any session. Exercises with zero completed sets pruned from `session_exercises` at finish. |
@@ -223,17 +223,33 @@ Rules from CLAUDE.md apply throughout: functions 4–20 lines, files <500 lines,
 5. Tests: every domain fn — week bucketing across year boundary, multi-muscle attribution, streak gaps, PR ties (earliest wins, document).
 6. **Done when**: all spec analytics render from real logged data; tab opens with no perceptible delay.
 
-### Phase 8 — Distribution 🚧 BLOCKED (needs EAS auth + device)
+### Phase 8 — Distribution ✅ (local Gradle, no EAS)
 
-**Goal**: installed on your phone, updatable forever.
+**Goal**: installed on your phone via a fully-local, offline APK build.
 
-1. EAS setup: `eas init`, `eas update:configure` (adds `expo-updates`, channel config). `app.json`: `runtimeVersion: { policy: 'appVersion' }`, Android package id, update URL.
-2. Build signed release APK locally: `eas build --platform android --profile production --local` (profile with `buildType: apk`, not AAB — sideload target, no Play Store). Transfer + install APK.
-3. Update workflow, documented in README:
-   - JS/asset-only change → `eas update --channel production` → app picks up on next two launches. 
-   - Native change (new native dep, SDK upgrade) → bump `version` in app.json → rebuild + reinstall APK.
-4. Smoke checklist on device: fresh install seeds DB → build plan → assign weekday → full session with timer (locked phone notification) → edit from history → analytics populated → kill mid-session + resume.
-5. **Done when**: APK on phone, an OTA update verified end-to-end.
+**Revised approach (2026-06-13): dropped EAS/OTA for simplicity.** No Expo
+account, no cloud queue, no login. CNG release builds sign with the local
+debug key by default — no keystore step needed for solo sideload. JS changes
+ship by rebuild + reinstall (no OTA). `expo-updates` stays installed but inert
+(no update URL configured). See `docs/BUILD.md` for the full runbook.
+
+1. Build: `npm run apk` (= `expo prebuild --platform android` → regenerates the
+   gitignored `android/` dir, then `./gradlew assembleRelease`). APK at
+   `android/app/build/outputs/apk/release/app-release.apk`.
+2. Install: `adb install -r <apk>` (or copy to phone + tap). `-r` reinstalls
+   over the previous build — same debug signing key per machine, so it upgrades
+   in place without losing the SQLite DB.
+3. New build for any change (JS or native) — bump `version` in `package.json` +
+   `app.json` together for native/SDK changes, rebuild, reinstall.
+4. Smoke checklist on device: fresh install seeds DB → build plan → assign
+   weekday → full session with timer (locked phone notification) → edit from
+   history → analytics populated → kill mid-session + resume.
+5. **Done when**: APK on phone, smoke checklist passes.
+
+> **Tooling note**: `npm run apk` is unverified in this repo's CI — it needs a
+> JDK + Android SDK on the build machine (the developer's box, not the agent
+> sandbox). Optional portable keystore (for a stable upgrade key across
+> machines) documented in `docs/BUILD.md`.
 
 ---
 
