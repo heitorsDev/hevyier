@@ -1,6 +1,22 @@
 # hevyier — Implementation Plan
 _Date: 2026-06-12 · Implements: [2026-06-01-hevyier-design.md](./2026-06-01-hevyier-design.md)_
 
+## Progress (as of 2026-06-13, branch `feat/exercises-plans-ui`)
+
+| Phase | Status | Evidence |
+|---|---|---|
+| 0 — Bootstrap | ✅ Done | `app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `src/theme/tokens.ts`, `test/tabs-shell.test.tsx` |
+| 1 — Data layer | ✅ Done | `src/db/{schema,client,seed,seedExercises}.ts`, `src/db/migrations/`, all `src/repos/*`, repo + seed tests |
+| 2 — Exercises tab | ✅ Done | `app/(tabs)/exercises.tsx`, `app/exercise/[id].tsx`, `MuscleSelector`, `domain/exerciseForm.ts` (commit `17299a4`) |
+| 3 — Plans, schedule, settings | ✅ Done | `app/(tabs)/plans.tsx`, `app/plan/[id].tsx`, `app/settings.tsx`, `domain/planReorder.ts` (commit `6d817fe`) |
+| 4 — Session core | ✅ Done | `app/session/[id]/{index,log/[sessionExerciseId]}.tsx`, `app/(tabs)/index.tsx`, `SetRow`/`PlatePad`/`RepStepper`/`SetSection`, `domain/setRows.ts` (commits `e85c6aa`,`30c566d`,`01452c9`,`711b2ef`) |
+| 5 — Rest timer, last-session, nudge | ✅ Done | `hooks/useRestTimer.tsx`, `lib/restNotifier.ts`, `RestTimerBanner`/`LastSessionBlock`/`NudgeBanner`, `domain/overloadNudge.ts`, `repos/exerciseHistoryRepo.ts` (commits `6bf25b5`,`1e64a4d`,`5855f1d`) |
+| 6 — History | ⬜ Not started | `app/(tabs)/history.tsx` is still `ScreenPlaceholder`; no `app/history/[id].tsx` |
+| 7 — Analytics | ⬜ Not started | `app/(tabs)/analytics.tsx` is still `ScreenPlaceholder`; no `src/charts/`, no `src/domain/analytics/` |
+| 8 — Distribution | ⬜ Not started | deps (`expo-updates`/`victory-native`/`skia`) installed + Android `package` set; no `eas.json`, no `runtimeVersion`/update URL in `app.json` |
+
+Next up: Phase 6 (History).
+
 ## Decision Log (resolved 2026-06-12 interview)
 
 | # | Topic | Decision |
@@ -62,7 +78,7 @@ Rules from CLAUDE.md apply throughout: functions 4–20 lines, files <500 lines,
 
 ## Phases
 
-### Phase 0 — Bootstrap
+### Phase 0 — Bootstrap ✅
 
 **Goal**: empty but running app with navigation shell, theme, tooling. No features.
 
@@ -75,7 +91,7 @@ Rules from CLAUDE.md apply throughout: functions 4–20 lines, files <500 lines,
 7. Jest: `jest-expo` preset, one smoke test rendering tabs layout. `npm test` green.
 8. **Done when**: app boots on Android device/emulator showing 5 empty tabs + settings route; `npm test` and `npx tsc --noEmit` pass.
 
-### Phase 1 — Data layer
+### Phase 1 — Data layer ✅
 
 **Goal**: full schema, migrations at startup, seed data, typed repos. No UI.
 
@@ -100,7 +116,7 @@ Rules from CLAUDE.md apply throughout: functions 4–20 lines, files <500 lines,
 6. Tests: repos run against in-memory SQLite in jest (better-sqlite3 driver behind same Drizzle schema); cover CRUD per repo, FK cascade behavior (delete plan → session.plan_id nulled; delete session → sets gone), seed idempotency (running twice inserts once).
 7. **Done when**: app boots, DB migrated + seeded on fresh install; all repo tests green.
 
-### Phase 2 — Exercises tab
+### Phase 2 — Exercises tab ✅
 
 **Goal**: full exercise library CRUD with muscle targeting.
 
@@ -115,7 +131,7 @@ Rules from CLAUDE.md apply throughout: functions 4–20 lines, files <500 lines,
 4. Tests: form validation logic (pure fn), repo round-trip of muscle pairs, archive-vs-delete branch.
 5. **Done when**: can create, edit, archive, delete exercises on device; seeded library browsable + searchable.
 
-### Phase 3 — Plans, schedule, settings
+### Phase 3 — Plans, schedule, settings ✅
 
 **Goal**: plan CRUD, weekday assignment, global settings.
 
@@ -130,7 +146,7 @@ Rules from CLAUDE.md apply throughout: functions 4–20 lines, files <500 lines,
 4. Tests: reorder logic (pure fn producing new `order` values), schedule repo upsert, settings typed accessors.
 5. **Done when**: can build a real plan, assign it to weekdays, tweak defaults.
 
-### Phase 4 — Session core
+### Phase 4 — Session core ✅
 
 **Goal**: the product — start/resume/log/finish a workout, zero-keyboard.
 
@@ -162,7 +178,7 @@ Rules from CLAUDE.md apply throughout: functions 4–20 lines, files <500 lines,
 6. Tests: `buildSetRows` (fresh, resume-partial, edit-finished cases), label sequencing with added sets, prune-on-finish, ✓ insert/delete round-trip, weight floor at 0.
 7. **Done when**: full gym workout loggable end-to-end on device without ever opening keyboard; kill app mid-session → resume intact.
 
-### Phase 5 — Rest timer, last-session reference, overload nudge
+### Phase 5 — Rest timer, last-session reference, overload nudge ✅
 
 **Goal**: the between-sets experience.
 
@@ -174,7 +190,7 @@ Rules from CLAUDE.md apply throughout: functions 4–20 lines, files <500 lines,
 6. Tests: `shouldNudge` matrix (equal → true; 1 session / different length / different weight / different order → false), notification schedule/cancel mocked behind a project-owned `restNotifier` interface (named fake in tests, per CLAUDE.md).
 7. **Done when**: ✓ a set → banner counts down; lock phone → vibrating notification at expiry; nudge appears after two identical sessions.
 
-### Phase 6 — History
+### Phase 6 — History ⬜ NOT STARTED
 
 **Goal**: browse, edit, delete past sessions.
 
@@ -186,7 +202,7 @@ Rules from CLAUDE.md apply throughout: functions 4–20 lines, files <500 lines,
 6. Tests: history list aggregation query (volume/duration math), edit-mode prune reuse.
 7. **Done when**: past mistakes fixable from History; junk sessions deletable.
 
-### Phase 7 — Analytics
+### Phase 7 — Analytics ⬜ NOT STARTED
 
 **Goal**: every chart from spec, all free, all local.
 
@@ -205,7 +221,7 @@ Rules from CLAUDE.md apply throughout: functions 4–20 lines, files <500 lines,
 5. Tests: every domain fn — week bucketing across year boundary, multi-muscle attribution, streak gaps, PR ties (earliest wins, document).
 6. **Done when**: all spec analytics render from real logged data; tab opens with no perceptible delay.
 
-### Phase 8 — Distribution
+### Phase 8 — Distribution ⬜ NOT STARTED
 
 **Goal**: installed on your phone, updatable forever.
 
