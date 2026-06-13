@@ -20,6 +20,14 @@
 - Tag releases with semver (`v0.1.0`). Bump in `package.json` +
   `app.json` together.
 
+## Releasing
+
+- Releases are signed Android APKs published to GitHub Releases by
+  pushing a `v*` tag (`.github/workflows/release.yml`).
+- When the user asks to cut/create a release, follow the agent runbook
+  in `docs/RELEASING.md` step by step. Do not push a tag without
+  confirming the version and passing the preflight checks.
+
 ## Code style
 
 - Functions: 4-20 lines. Split if longer.

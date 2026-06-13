@@ -45,7 +45,7 @@
   },
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
+    "android": "expo run:android",
     "test": "jest",
     "lint": "expo lint",
     "apk": "expo prebuild --platform android && cd android && ./gradlew assembleRelease"

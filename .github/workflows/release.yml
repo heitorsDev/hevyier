@@ -1,0 +1,61 @@
+name: Release APK
+
+# Push a semver tag -> build a signed APK -> publish a GitHub Release with it.
+#   git tag v1.2.0 && git push origin v1.2.0
+# See docs/RELEASING.md for the full runbook and one-time secret setup.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write # required to create the Release and upload the APK
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - run: npm ci
+
+      - name: Decode release keystore
+        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      - name: Prebuild Android project
+        run: npx expo prebuild --platform android --no-install
+        env:
+          # withReleaseSigning stamps versionCode from this so every build
+          # increments and Android allows in-place upgrades.
+          HEVYIER_VERSION_CODE: ${{ github.run_number }}
+
+      - name: Assemble signed release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+        env:
+          HEVYIER_STORE_FILE: ${{ runner.temp }}/release.jks
+          HEVYIER_STORE_PASSWORD: ${{ secrets.HEVYIER_STORE_PASSWORD }}
+          HEVYIER_KEY_ALIAS: ${{ secrets.HEVYIER_KEY_ALIAS }}
+          HEVYIER_KEY_PASSWORD: ${{ secrets.HEVYIER_KEY_PASSWORD }}
+
+      - name: Name the APK after the tag
+        run: cp android/app/build/outputs/apk/release/app-release.apk "hevyier-${{ github.ref_name }}.apk"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: hevyier-${{ github.ref_name }}.apk
+          generate_release_notes: true
