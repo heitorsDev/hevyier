@@ -61,7 +61,7 @@ export default function ExerciseLoggingScreen() {
   const setRows = useSetRows(
     sessionId,
     sessionExerciseId,
-    editMode ? undefined : timer.start,
+    editMode ? undefined : (type, name, commit) => timer.start(type, name, commit),
   );
   const [reference] = useState<ReferenceView | null>(() =>
     editMode ? null : loadReference(sessionId, sessionExerciseId),
