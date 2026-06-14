@@ -33,7 +33,7 @@ export function SetRow({
   onRepsChange: (reps: number) => void;
   onToggleCheck: () => void;
 }) {
-  const checked = row.setId !== null || row.isPending;
+  const checked = row.setId !== null;
   const active = isActive && !checked;
   return (
     <View style={[styles.row, checked && styles.checkedRow]}>
