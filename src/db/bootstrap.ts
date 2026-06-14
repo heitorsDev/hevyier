@@ -37,9 +37,14 @@ export function useWebRuntimeWarm(): boolean {
   useEffect(() => {
     if (warm) return;
     let cancelled = false;
-    Promise.all([warmUpWebDatabase(), loadChartEngineWeb()]).then(() => {
-      if (!cancelled) setWarm(true);
-    });
+    Promise.all([warmUpWebDatabase(), loadChartEngineWeb()])
+      .then(() => {
+        if (!cancelled) setWarm(true);
+      })
+      .catch((err) => {
+        console.error("web runtime warm-up failed:", err);
+        if (!cancelled) setWarm(true);
+      });
     return () => {
       cancelled = true;
     };

@@ -19,13 +19,27 @@
 - Prefer a git worktree per branch (`git worktree add ../hevyier-<slug> <branch>`)
   over switching branches in place — keeps main checkout clean and
   lets parallel work run without stashing.
-- Commit early and often: one logical change per commit, every commit
-  compiles. Don't batch a day of work into one commit.
+- Commit early and often. Every commit compiles and passes typecheck.
+  Commit after each discrete step — don't batch unrelated changes:
+  - types/interfaces added or changed → commit
+  - new function or module → commit
+  - wiring/integration of existing pieces → commit
+  - test added or updated → commit
+  - bug fixed → commit
+  A feature with 5 steps = 5+ commits. Never accumulate more than
+  one logical change before committing.
 - Commit messages: Conventional Commits (`feat:`, `fix:`, `chore:`,
   `refactor:`, `test:`, `docs:`). Subject ≤50 chars, imperative mood.
   Body explains WHY only when not obvious from the diff.
-- **Agents must never merge into `main`.** When work is done, push
-  the branch and open a PR for the user to review and approve:
+- **Agents must never merge into `main`** — except in the explicit
+  `/review` workflow:
+  1. User runs `/review <PR#>`
+  2. Agent spawns a subagent to fix any blocking errors found
+  3. After fixes are committed and pushed, agent merges via squash:
+     ```
+     gh pr merge <number> --squash --delete-branch=false
+     ```
+  Outside that workflow: push the branch and open a PR for the user:
   ```
   git push -u origin feat/<slug>
   gh pr create --title "..." --body "..."
