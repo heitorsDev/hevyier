@@ -17,7 +17,11 @@ export default function SessionLayout() {
           headerShadowVisible: false,
           contentStyle: { backgroundColor: colors.bg },
         }}
-      />
+      >
+        {/* Session overview uses its own in-body header (plan name + live clock). */}
+        <Stack.Screen name="[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="[id]/log/[sessionExerciseId]" options={{ title: "EXERCISE" }} />
+      </Stack>
     </RestTimerProvider>
   );
 }
