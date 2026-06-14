@@ -26,53 +26,62 @@ export function RepStepper({
 }) {
   const decrement = () => onChange(Math.max(1, (reps ?? 1) - 1));
   const increment = () => onChange(reps === null ? 1 : reps + 1);
+  // Container provides the outer frame; buttons draw only internal dividers.
   return (
-    <View style={styles.row}>
-      <RepButton label="−" onPress={decrement} disabled={disabled} />
-      <Text style={[styles.value, disabled && styles.disabledLabel]}>
+    <View style={styles.strip}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="decrement reps"
+        disabled={disabled}
+        onPress={decrement}
+        style={styles.decBtn}
+      >
+        <Text style={[styles.btnLabel, disabled && styles.disabledText]}>−</Text>
+      </Pressable>
+      <Text style={[styles.value, disabled && styles.disabledText]}>
         {reps === null ? "—" : String(reps)}
       </Text>
-      <RepButton label="+" onPress={increment} disabled={disabled} />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="increment reps"
+        disabled={disabled}
+        onPress={increment}
+        style={styles.incBtn}
+      >
+        <Text style={[styles.btnLabel, disabled && styles.disabledText]}>+</Text>
+      </Pressable>
     </View>
   );
 }
 
-function RepButton({
-  label,
-  onPress,
-  disabled,
-}: {
-  label: string;
-  onPress: () => void;
-  disabled: boolean;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label === "−" ? "decrement reps" : "increment reps"}
-      disabled={disabled}
-      onPress={onPress}
-      style={styles.button}
-    >
-      <Text style={[styles.label, disabled && styles.disabledLabel]}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center" },
-  button: {
-    width: touchTarget,
-    height: touchTarget,
+  strip: {
+    flexDirection: "row",
+    alignItems: "center",
     borderColor: colors.fg,
     borderWidth: border,
+  },
+  decBtn: {
+    width: touchTarget,
+    height: touchTarget,
     alignItems: "center",
     justifyContent: "center",
+    borderRightColor: colors.fg,
+    borderRightWidth: border,
   },
-  label: { color: colors.fg, fontSize: fontSize.large, fontWeight: "700" },
-  disabledLabel: { color: colors.disabled },
+  incBtn: {
+    width: touchTarget,
+    height: touchTarget,
+    alignItems: "center",
+    justifyContent: "center",
+    borderLeftColor: colors.fg,
+    borderLeftWidth: border,
+  },
+  btnLabel: {
+    color: colors.fg,
+    fontSize: fontSize.large,
+    fontWeight: "700",
+  },
   value: {
     minWidth: touchTarget,
     textAlign: "center",
@@ -80,4 +89,5 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilyMono,
     fontSize: fontSize.body,
   },
+  disabledText: { color: colors.disabled },
 });

@@ -1,6 +1,6 @@
 import { Pressable, Text, View, StyleSheet } from "react-native";
 
-import { border, colors, fontFamilyMono, touchTarget } from "@/theme/tokens";
+import { border, colors, fontFamilyMono, fontSize, touchTarget } from "@/theme/tokens";
 
 const PLATES = [2.5, 5, 10, 15, 20] as const;
 
@@ -14,14 +14,25 @@ const PLATES = [2.5, 5, 10, 15, 20] as const;
 export function PlatePad({ onDelta }: { onDelta: (deltaKg: number) => void }) {
   return (
     <View>
-      <View style={styles.row}>
-        {PLATES.map((plate) => (
-          <PlateButton key={`+${plate}`} delta={plate} onDelta={onDelta} />
+      {/* topRow has borderBottomWidth: 0 — bottom row's top border provides the shared middle line */}
+      <View style={[styles.row, styles.topRow]}>
+        {PLATES.map((plate, i) => (
+          <PlateButton
+            key={`+${plate}`}
+            delta={plate}
+            onDelta={onDelta}
+            isLast={i === PLATES.length - 1}
+          />
         ))}
       </View>
       <View style={styles.row}>
-        {PLATES.map((plate) => (
-          <PlateButton key={`-${plate}`} delta={-plate} onDelta={onDelta} />
+        {PLATES.map((plate, i) => (
+          <PlateButton
+            key={`-${plate}`}
+            delta={-plate}
+            onDelta={onDelta}
+            isLast={i === PLATES.length - 1}
+          />
         ))}
       </View>
     </View>
@@ -31,9 +42,11 @@ export function PlatePad({ onDelta }: { onDelta: (deltaKg: number) => void }) {
 function PlateButton({
   delta,
   onDelta,
+  isLast,
 }: {
   delta: number;
   onDelta: (deltaKg: number) => void;
+  isLast: boolean;
 }) {
   const label = `${delta > 0 ? "+" : "−"}${Math.abs(delta)}`;
   return (
@@ -41,7 +54,7 @@ function PlateButton({
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={() => onDelta(delta)}
-      style={styles.button}
+      style={[styles.button, isLast && styles.lastButton]}
     >
       <Text style={styles.label}>{label}</Text>
     </Pressable>
@@ -49,18 +62,30 @@ function PlateButton({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row" },
+  // Outer row provides the frame; buttons draw only internal dividers.
+  row: {
+    flexDirection: "row",
+    borderColor: colors.fg,
+    borderWidth: border,
+  },
+  topRow: {
+    borderBottomWidth: 0,
+  },
   button: {
     flex: 1,
     height: touchTarget,
-    borderColor: colors.fg,
-    borderWidth: border,
+    borderRightColor: colors.fg,
+    borderRightWidth: border,
     alignItems: "center",
     justifyContent: "center",
+  },
+  lastButton: {
+    borderRightWidth: 0,
   },
   label: {
     color: colors.fg,
     fontFamily: fontFamilyMono,
+    fontSize: fontSize.body,
     fontWeight: "700",
   },
 });

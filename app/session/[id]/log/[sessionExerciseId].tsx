@@ -190,15 +190,15 @@ function nameFor(exerciseId: number): string {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 12, gap: 12 },
+  content: { padding: 16, gap: 16 },
   title: {
     color: colors.fg,
     fontSize: fontSize.large,
     fontWeight: "700",
     borderColor: colors.fg,
     borderBottomWidth: border,
-    paddingBottom: 8,
+    paddingBottom: 12,
   },
-  nav: { flexDirection: "row", gap: 8, marginTop: 16 },
+  nav: { flexDirection: "row", gap: 8, marginTop: 24 },
   navButton: { flex: 1 },
 });

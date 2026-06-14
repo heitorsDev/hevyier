@@ -56,8 +56,8 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontFamily: fontFamilyMono,
     fontSize: fontSize.small,
-    letterSpacing: 1,
-    paddingVertical: 4,
+    fontWeight: "700",
+    paddingVertical: 6,
   },
   row: { minHeight: touchTarget, flexDirection: "row", alignItems: "center" },
   label: {

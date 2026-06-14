@@ -247,7 +247,7 @@ function ExercisePickerModal({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 12, gap: 8 },
+  content: { padding: 16, gap: 12 },
   headerRow: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   },
   menuDots: { color: colors.fg, fontSize: fontSize.large, fontWeight: "700" },
   exerciseName: { color: colors.fg, fontSize: fontSize.body },
-  counts: { color: colors.muted, fontSize: fontSize.body, fontFamily: fontFamilyMono },
+  counts: { color: colors.muted, fontSize: fontSize.body, fontFamily: fontFamilyMono, fontWeight: "700" },
   equipment: { color: colors.muted, fontSize: fontSize.small },
   footer: { marginTop: 24 },
 });

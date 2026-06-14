@@ -60,8 +60,8 @@ const styles = StyleSheet.create({
   section: { gap: 8 },
   header: {
     color: colors.muted,
-    fontSize: fontSize.small,
+    fontSize: fontSize.body,
     fontFamily: fontFamilyMono,
-    letterSpacing: 1,
+    fontWeight: "700",
   },
 });

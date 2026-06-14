@@ -30,11 +30,12 @@ export function Stepper({
 }) {
   const decrement = () => onChange(Math.max(min, value - step));
   const increment = () => onChange(value + step);
+  // Container provides the outer frame; buttons draw only internal dividers.
   return (
-    <View style={styles.row}>
-      <StepperButton label="−" onPress={decrement} disabled={value <= min} />
+    <View style={styles.strip}>
+      <StepperButton label="−" onPress={decrement} disabled={value <= min} isLeft />
       <Text style={styles.value}>{format ? format(value) : String(value)}</Text>
-      <StepperButton label="+" onPress={increment} disabled={false} />
+      <StepperButton label="+" onPress={increment} disabled={false} isLeft={false} />
     </View>
   );
 }
@@ -43,10 +44,12 @@ function StepperButton({
   label,
   onPress,
   disabled,
+  isLeft,
 }: {
   label: string;
   onPress: () => void;
   disabled: boolean;
+  isLeft: boolean;
 }) {
   return (
     <Pressable
@@ -54,9 +57,9 @@ function StepperButton({
       accessibilityLabel={label === "−" ? "decrement" : "increment"}
       disabled={disabled}
       onPress={onPress}
-      style={styles.stepButton}
+      style={[styles.btn, isLeft ? styles.leftBtn : styles.rightBtn]}
     >
-      <Text style={[styles.stepLabel, disabled && styles.disabledLabel]}>
+      <Text style={[styles.btnLabel, disabled && styles.disabledLabel]}>
         {label}
       </Text>
     </Pressable>
@@ -64,16 +67,27 @@ function StepperButton({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center" },
-  stepButton: {
-    width: touchTarget,
-    height: touchTarget,
+  strip: {
+    flexDirection: "row",
+    alignItems: "center",
     borderColor: colors.fg,
     borderWidth: border,
+  },
+  btn: {
+    width: touchTarget,
+    height: touchTarget,
     alignItems: "center",
     justifyContent: "center",
   },
-  stepLabel: { color: colors.fg, fontSize: fontSize.large, fontWeight: "700" },
+  leftBtn: {
+    borderRightColor: colors.fg,
+    borderRightWidth: border,
+  },
+  rightBtn: {
+    borderLeftColor: colors.fg,
+    borderLeftWidth: border,
+  },
+  btnLabel: { color: colors.fg, fontSize: fontSize.large, fontWeight: "700" },
   disabledLabel: { color: colors.disabled },
   value: {
     minWidth: touchTarget * 1.5,

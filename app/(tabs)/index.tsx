@@ -131,7 +131,7 @@ function LastSessionBlock({ session }: { session: SessionRow }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 12, gap: 12 },
+  content: { padding: 16, gap: 16 },
   header: {
     color: colors.fg,
     fontSize: fontSize.large,
@@ -139,19 +139,18 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilyMono,
     borderColor: colors.fg,
     borderBottomWidth: border,
-    paddingBottom: 8,
+    paddingBottom: 12,
   },
-  block: { gap: 8 },
+  block: { gap: 12 },
   planName: { color: colors.fg, fontSize: fontSize.large, fontWeight: "700" },
   previewItem: { color: colors.muted, fontSize: fontSize.body },
   restDay: { color: colors.muted, fontSize: fontSize.large, fontWeight: "700" },
   last: {
     borderColor: colors.fg,
     borderWidth: border,
-    padding: 12,
-    gap: 6,
-    marginTop: 8,
+    padding: 16,
+    gap: 8,
   },
-  lastHeader: { color: colors.muted, fontSize: fontSize.small, letterSpacing: 1 },
+  lastHeader: { color: colors.muted, fontSize: fontSize.small, fontWeight: "700" },
   lastLine: { color: colors.fg, fontSize: fontSize.body, fontFamily: fontFamilyMono },
 });
