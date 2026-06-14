@@ -69,6 +69,24 @@ test("plan exercises: add, edit counts, reorder, remove, ordered list", () => {
   expect(listPlanExercises(fixture.db, planId)).toHaveLength(1);
 });
 
+test("updatePlanExerciseSets persists without a subsequent batch save", () => {
+  // Regression for fix/plan-sets-autosave: each +/- tap writes through
+  // immediately; no explicit "save all rows" call should be needed.
+  const planId = createPlan(fixture.db, "Push Day");
+  const rowId = addExerciseToPlan(fixture.db, {
+    planId,
+    exerciseId: createSquat(),
+    order: 0,
+    warmupSets: 2,
+    workSets: 4,
+  });
+
+  updatePlanExerciseSets(fixture.db, rowId, { warmupSets: 3, workSets: 4 });
+
+  const [row] = listPlanExercises(fixture.db, planId);
+  expect(row).toMatchObject({ warmupSets: 3, workSets: 4 });
+});
+
 test("delete plan cascades plan_exercises and nulls session + schedule refs", () => {
   seedDatabase(fixture.db); // schedule rows exist only after seeding
   const planId = createPlan(fixture.db, "Push Day");
