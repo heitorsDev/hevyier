@@ -64,6 +64,7 @@ export default function PlanEditorScreen() {
   };
 
   const addExercise = (exerciseId: number) => {
+    savePlan();
     addExerciseToPlan(appDb, {
       planId,
       exerciseId,
@@ -113,6 +114,7 @@ export default function PlanEditorScreen() {
           onMoveUp={() => reorder(moveUp(rows, row.id))}
           onMoveDown={() => reorder(moveDown(rows, row.id))}
           onRemove={() => {
+            savePlan();
             removeExerciseFromPlan(appDb, row.id);
             reload();
           }}
