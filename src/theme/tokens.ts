@@ -33,3 +33,7 @@ export const tabBarHeight = 64;
 
 // Icon size for bottom tab bar buttons.
 export const tabBarIconSize = 28;
+
+// Neon green singles out today's scheduled plan in the picker list so it
+// stands out against the monochrome palette at a glance mid-workout.
+export const colorToday = "#00FF00";
