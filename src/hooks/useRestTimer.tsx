@@ -52,6 +52,10 @@ export function RestTimerProvider(props: {
   const db = props.db ?? appDb;
   const [state, setState] = useState<RestState | null>(null);
   const pendingId = useRef<string | null>(null);
+  // Incremented on every start() / dismiss() so an in-flight scheduleRestOver
+  // that resolves after dismiss() still gets cancelled (race: ID arrives after
+  // cancelPending was called with pendingId still null).
+  const activeNonce = useRef(0);
   const permissionAsked = useRef(false);
 
   // Logging a set must never throw because of notification I/O — every
@@ -74,13 +78,19 @@ export function RestTimerProvider(props: {
   // effect loops setState forever).
   const start = useCallback(
     (setType: RestSetType, exerciseName: string): void => {
+      const nonce = ++activeNonce.current;
       const endsAt = Date.now() + getRestTimerSeconds(db, setType) * 1000;
       cancelPending();
       ensurePermission();
       notifier
         .scheduleRestOver(endsAt, exerciseName)
         .then((id) => {
-          pendingId.current = id;
+          if (activeNonce.current === nonce) {
+            pendingId.current = id;
+          } else if (id) {
+            // dismiss() or a newer start() fired before this resolved — cancel immediately.
+            notifier.cancel(id).catch(() => {});
+          }
         })
         .catch(() => {});
       setState({ endsAt, setType, exerciseName });
@@ -89,6 +99,7 @@ export function RestTimerProvider(props: {
   );
 
   const dismiss = useCallback((): void => {
+    activeNonce.current++;
     cancelPending();
     setState(null);
   }, [cancelPending]);

@@ -8,6 +8,7 @@ import {
   useRestTimer,
   type RestTimerController,
 } from "@/hooks/useRestTimer";
+import type { RestNotifier } from "@/lib/restNotifier";
 import { setRestTimerSeconds } from "@/repos/settingsRepo";
 
 import { FakeRestNotifier } from "./lib/restNotifier.fake";
@@ -79,6 +80,49 @@ test("dismiss clears state and cancels the pending notification", async () => {
 
   expect(result.current.state).toBeNull();
   expect(notifier.cancelled).toContain("notif-1");
+});
+
+test("dismiss cancels a notification that resolves after dismiss is called", async () => {
+  // Race: scheduleRestOver resolves AFTER dismiss() runs, so cancelPending()
+  // had no ID yet — the nonce mechanism must still cancel it.
+  const cancelled: string[] = [];
+  let resolveSchedule!: () => void;
+  const racyNotifier: RestNotifier = {
+    requestPermission: async () => true,
+    scheduleRestOver: async (_endsAt: number, _name: string) =>
+      new Promise<string | null>((resolve) => {
+        resolveSchedule = () => resolve("notif-race");
+      }),
+    cancel: async (id: string) => {
+      cancelled.push(id);
+    },
+  };
+
+  const { result } = renderHook(() => useRestTimer(), {
+    wrapper: ({ children }: { children: React.ReactNode }) => (
+      <RestTimerProvider notifier={racyNotifier} db={fixture.db}>
+        {children}
+      </RestTimerProvider>
+    ),
+  });
+
+  // Start without awaiting schedule resolution
+  act(() => {
+    result.current.start("work", "Bench");
+  });
+
+  // Dismiss before the notification ID arrives
+  act(() => {
+    result.current.dismiss();
+  });
+  expect(result.current.state).toBeNull();
+
+  // Let the deferred schedule resolve — should be cancelled immediately
+  await act(async () => {
+    resolveSchedule();
+  });
+
+  expect(cancelled).toContain("notif-race");
 });
 
 test("useRestTimer throws when used outside a provider", () => {
