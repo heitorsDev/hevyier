@@ -190,3 +190,36 @@ test("0-second timer commits immediately without showing a timer", async () => {
   expect(commit).toHaveBeenCalledTimes(1);
   expect(result.current.state).toBeNull();
 });
+
+test("natural timer expiry: onCommit called when countdown reaches 0", async () => {
+  // Use a 1-second timer so fake-timer advancement is minimal.
+  setRestTimerSeconds(fixture.db, "work", 1);
+  jest.useFakeTimers();
+  try {
+    const commit = jest.fn();
+
+    function Harness() {
+      const { start } = useRestTimer();
+      React.useEffect(() => { start("work", "Bench", commit); }, [start]);
+      return <RestTimerBanner />;
+    }
+
+    render(
+      <RestTimerProvider notifier={notifier} db={fixture.db}>
+        <Harness />
+      </RestTimerProvider>,
+    );
+
+    expect(commit).not.toHaveBeenCalled();
+
+    // Advance past the 1-second endsAt so the banner's interval tick
+    // sets now > endsAt, triggering the auto-dismiss useEffect.
+    await act(async () => {
+      jest.advanceTimersByTime(1100);
+    });
+
+    expect(commit).toHaveBeenCalledTimes(1);
+  } finally {
+    jest.useRealTimers();
+  }
+});
