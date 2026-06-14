@@ -2,6 +2,20 @@
 
 - Never commit directly to `main`. All work happens on a branch
   (`feat/<slug>`, `fix/<slug>`, `chore/<slug>`).
+- **Agents: MANDATORY worktree isolation.** Before touching any file,
+  create a dedicated worktree and work exclusively inside it:
+  ```
+  git worktree add ../hevyier-<slug> -b feat/<slug>
+  cd ../hevyier-<slug>
+  ```
+  Rules to avoid inter-agent conflicts:
+  - Slug must be unique (e.g. include task ID or short description).
+    Never reuse an existing branch or worktree path.
+  - All work — including `npm install`, builds, tests — runs inside
+    the worktree dir, not the main checkout.
+  - Never edit files in `/home/heitor/hevyier` directly.
+  - Never run git ops (commit, fetch, rebase) on a branch another
+    agent owns. Coordinate through `main` only.
 - Prefer a git worktree per branch (`git worktree add ../hevyier-<slug> <branch>`)
   over switching branches in place — keeps main checkout clean and
   lets parallel work run without stashing.
@@ -10,6 +24,13 @@
 - Commit messages: Conventional Commits (`feat:`, `fix:`, `chore:`,
   `refactor:`, `test:`, `docs:`). Subject ≤50 chars, imperative mood.
   Body explains WHY only when not obvious from the diff.
+- **Agents must never merge into `main`.** When work is done, push
+  the branch and open a PR for the user to review and approve:
+  ```
+  git push -u origin feat/<slug>
+  gh pr create --title "..." --body "..."
+  ```
+  Stop after the PR is open. Do not merge, squash, or rebase onto main.
 - Merge into `main` only working changes: typecheck, lint, and tests
   green before merging. Broken main blocks everyone.
 - Merge via fast-forward or squash-merge. Keep merged branches —
