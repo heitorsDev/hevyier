@@ -1,5 +1,5 @@
-import type { JSX } from "react";
-import { Text, View, StyleSheet } from "react-native";
+import { useState, type JSX } from "react";
+import { Pressable, Text, View, StyleSheet } from "react-native";
 
 import type { LoggedSetView } from "@/repos/exerciseHistoryRepo";
 import {
@@ -7,13 +7,12 @@ import {
   colors,
   fontFamilyMono,
   fontSize,
-  touchTarget,
 } from "@/theme/tokens";
 
 /**
- * Greyed, read-only LAST SESSION reference shown above the live set list
- * (decision #7). Warmups label `W1, W2, …` and work sets `1, 2, …`, each
- * numbered within its own type in list order. Omitted entirely when empty.
+ * Collapsible greyed LAST SESSION reference above the live set list.
+ * Collapsed by default to keep the logging screen uncluttered; tap header to
+ * expand. Warmups label `W1, W2, …` and work sets `1, 2, …`. Omitted when empty.
  *
  * Usage: `<LastSessionBlock sets={lastSets} />`
  */
@@ -22,18 +21,29 @@ export function LastSessionBlock({
 }: {
   sets: LoggedSetView[];
 }): JSX.Element | null {
+  const [collapsed, setCollapsed] = useState(true);
+
   if (sets.length === 0) return null;
   return (
     <View style={styles.block}>
-      <Text style={styles.header}>LAST SESSION</Text>
-      {labelSets(sets).map(({ label, set }, index) => (
-        <View key={index} style={styles.row}>
-          <Text style={styles.label}>{label}</Text>
-          <Text style={styles.setText}>
-            {set.weightKg}kg × {set.reps}
-          </Text>
-        </View>
-      ))}
+      <Pressable
+        style={styles.headerRow}
+        onPress={() => setCollapsed((c) => !c)}
+        accessibilityRole="button"
+        accessibilityLabel={collapsed ? "expand last session" : "collapse last session"}
+      >
+        <Text style={styles.header}>LAST SESSION</Text>
+        <Text style={styles.toggle}>{collapsed ? "▸" : "▾"}</Text>
+      </Pressable>
+      {!collapsed &&
+        labelSets(sets).map(({ label, set }, index) => (
+          <View key={index} style={styles.row}>
+            <Text style={styles.label}>{label}</Text>
+            <Text style={styles.setText}>
+              {set.weightKg}kg × {set.reps}
+            </Text>
+          </View>
+        ))}
     </View>
   );
 }
@@ -52,16 +62,28 @@ function labelSets(
 
 const styles = StyleSheet.create({
   block: { borderColor: colors.muted, borderBottomWidth: border },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+  },
   header: {
     color: colors.muted,
     fontFamily: fontFamilyMono,
     fontSize: fontSize.small,
     fontWeight: "700",
-    paddingVertical: 6,
   },
-  row: { minHeight: touchTarget, flexDirection: "row", alignItems: "center" },
+  toggle: {
+    color: colors.muted,
+    fontFamily: fontFamilyMono,
+    fontSize: fontSize.small,
+    fontWeight: "700",
+  },
+  // Compact rows — read-only, no tap needed, 28dp is enough.
+  row: { height: 28, flexDirection: "row", alignItems: "center" },
   label: {
-    width: touchTarget,
+    width: 32,
     color: colors.muted,
     fontFamily: fontFamilyMono,
     fontSize: fontSize.small,
@@ -69,6 +91,6 @@ const styles = StyleSheet.create({
   setText: {
     color: colors.muted,
     fontFamily: fontFamilyMono,
-    fontSize: fontSize.body,
+    fontSize: fontSize.small,
   },
 });

@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 
 import { LastSessionBlock } from "@/components/LastSessionBlock";
 import type { LoggedSetView } from "@/repos/exerciseHistoryRepo";
@@ -8,14 +8,21 @@ test("LastSessionBlock renders nothing when there are no sets", () => {
   expect(queryByText("LAST SESSION")).toBeNull();
 });
 
-test("LastSessionBlock labels warmups and work sets independently", () => {
+test("LastSessionBlock is collapsed by default — sets not visible until expanded", () => {
+  const sets: LoggedSetView[] = [{ type: "work", weightKg: 100, reps: 5 }];
+  const { queryByText } = render(<LastSessionBlock sets={sets} />);
+  expect(queryByText("100kg × 5")).toBeNull();
+});
+
+test("LastSessionBlock shows sets after tapping header", () => {
   const sets: LoggedSetView[] = [
     { type: "warmup", weightKg: 40, reps: 10 },
     { type: "warmup", weightKg: 60, reps: 8 },
     { type: "work", weightKg: 100, reps: 5 },
     { type: "work", weightKg: 100, reps: 4 },
   ];
-  const { getByText } = render(<LastSessionBlock sets={sets} />);
+  const { getByText, getByLabelText } = render(<LastSessionBlock sets={sets} />);
+  fireEvent.press(getByLabelText("expand last session"));
 
   for (const label of ["W1", "W2", "1", "2"]) getByText(label);
   getByText("40kg × 10");
@@ -24,8 +31,9 @@ test("LastSessionBlock labels warmups and work sets independently", () => {
   getByText("100kg × 4");
 });
 
-test("LastSessionBlock renders decimal weight as-is", () => {
+test("LastSessionBlock renders decimal weight as-is when expanded", () => {
   const sets: LoggedSetView[] = [{ type: "work", weightKg: 62.5, reps: 6 }];
-  const { getByText } = render(<LastSessionBlock sets={sets} />);
+  const { getByText, getByLabelText } = render(<LastSessionBlock sets={sets} />);
+  fireEvent.press(getByLabelText("expand last session"));
   getByText("62.5kg × 6");
 });
