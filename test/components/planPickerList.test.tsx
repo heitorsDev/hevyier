@@ -7,6 +7,7 @@ const makePlan = (id: number, name: string) => ({ id, name });
 const makeMeta = (id: number, name: string, count = 3): PlanMeta => ({
   plan: makePlan(id, name),
   exerciseCount: count,
+  exerciseNames: [],
 });
 
 const baseView = {

@@ -7,6 +7,7 @@ import type { PlanRow } from "@/repos/plansRepo";
 export interface PlanMeta {
   plan: PlanRow;
   exerciseCount: number;
+  exerciseNames: string[];
 }
 
 export interface PlanPickerListView {

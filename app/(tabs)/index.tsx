@@ -45,10 +45,13 @@ function readTodayView(): TodayView {
   const plans = listPlans(appDb);
   const todayPlanId = active ? null : getPlanIdForDay(appDb, new Date().getDay());
   const hasAnySchedule = listWeekSchedule(appDb).some((r) => r.planId !== null);
-  const planMetas = plans.map((plan) => ({
-    plan,
-    exerciseCount: listPlanExercises(appDb, plan.id).length,
-  }));
+  const planMetas = plans.map((plan) => {
+    const rows = listPlanExercises(appDb, plan.id);
+    const exerciseNames = rows
+      .map((row) => getExercise(appDb, row.exerciseId)?.name)
+      .filter((name): name is string => name !== undefined);
+    return { plan, exerciseCount: rows.length, exerciseNames };
+  });
   return {
     active,
     planMetas,
@@ -72,13 +75,10 @@ export default function TodayTab() {
   );
 
   const openModal = useCallback((planId: number) => {
-    const plan = getPlan(appDb, planId);
-    if (!plan) return;
-    const exerciseNames = listPlanExercises(appDb, planId)
-      .map((row) => getExercise(appDb, row.exerciseId)?.name)
-      .filter((n): n is string => n !== undefined);
-    setModal({ planId, planName: plan.name, exerciseNames });
-  }, []);
+    const meta = view.planMetas.find((m) => m.plan.id === planId);
+    if (!meta) return;
+    setModal({ planId, planName: meta.plan.name, exerciseNames: meta.exerciseNames });
+  }, [view.planMetas]);
 
   const startFromModal = useCallback(() => {
     if (!modal) return;
