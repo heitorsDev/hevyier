@@ -30,3 +30,8 @@ export const touchTarget = 48;
 // Bottom tab bar height (dp). Taller than RN's ~50dp default so tab
 // switches land reliably with thumbs mid-workout.
 export const tabBarHeight = 64;
+
+// Accent green used for today's recommended plan highlight.
+export const GREEN = "#00FF00";
+// Semi-transparent green used as pulse background on the today plan row.
+export const GREEN_PULSE_BG = "rgba(0,255,0,0.08)";
