@@ -182,6 +182,9 @@ function checkRow(
   const row = rows[index];
   if (!isCheckable(row)) return;
 
+  // Capture timestamp now so loggedAt reflects when ✓ was pressed,
+  // not when the rest timer fires (~90s later).
+  const loggedAt = Date.now();
   // Commit fn — guarded by nonce so an uncheck cancels it even after the
   // timer has already called scheduleRestOver.
   const nonce = commitNonce.current;
@@ -192,7 +195,7 @@ function checkRow(
       type: row.type,
       weightKg: row.weightKg as number,
       reps: row.reps as number,
-      loggedAt: Date.now(),
+      loggedAt,
     });
     patchRow(setRows, index, (current) => ({ ...current, isPending: false, setId: id }));
   };
