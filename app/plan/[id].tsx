@@ -53,12 +53,6 @@ export default function PlanEditorScreen() {
 
   const savePlan = () => {
     renamePlan(appDb, planId, name);
-    rows.forEach((row) => {
-      updatePlanExerciseSets(appDb, row.id, {
-        warmupSets: row.warmupSets,
-        workSets: row.workSets,
-      });
-    });
     persistReorder(savedRows, rows);
     setSavedRows(rows);
   };
@@ -136,7 +130,7 @@ export default function PlanEditorScreen() {
   );
 }
 
-/** Patch local state only — deferred to Save button. */
+/** Persist set count immediately; name/order still deferred to Save button. */
 function updateSets(
   row: PlanExerciseRow,
   field: "warmupSets" | "workSets",
@@ -144,6 +138,10 @@ function updateSets(
   setRows: React.Dispatch<React.SetStateAction<PlanExerciseRow[]>>,
 ): void {
   const next = { ...row, [field]: value };
+  updatePlanExerciseSets(appDb, next.id, {
+    warmupSets: next.warmupSets,
+    workSets: next.workSets,
+  });
   setRows((prev) => prev.map((r) => (r.id === row.id ? next : r)));
 }
 
