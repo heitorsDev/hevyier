@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { border, colors, fontFamilyMono, fontSize, GREEN, GREEN_PULSE_BG, touchTarget } from "@/theme/tokens";
@@ -76,7 +76,8 @@ function PlanPickerRow({
   isToday: boolean;
   onPress: () => void;
 }) {
-  const pulse = useRef(new Animated.Value(0)).current;
+  // useState initializer creates the Animated.Value once without ref.current access during render
+  const [pulse] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     if (!isToday) return;

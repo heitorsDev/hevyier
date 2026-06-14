@@ -9,9 +9,11 @@ import { border, colors, fontSize, tabBarHeight, tabBarIconSize } from "@/theme/
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
 function tabIcon(outline: IoniconName, filled: IoniconName) {
-  return ({ color, focused }: { color: ColorValue; focused: boolean }) => (
+  const Icon = ({ color, focused }: { color: ColorValue; focused: boolean }) => (
     <Ionicons name={focused ? filled : outline} size={tabBarIconSize} color={color as string} />
   );
+  Icon.displayName = `TabIcon(${outline})`;
+  return Icon;
 }
 
 export default function TabsLayout() {

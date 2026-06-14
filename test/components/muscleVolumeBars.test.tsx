@@ -6,11 +6,10 @@ import type { MuscleWeekVolume } from "@/domain/analytics/muscleVolume";
 // Charts wrap victory-native + Skia (native-only under jest). Stub the
 // project-owned wrapper to a plain label so this test can exercise the
 // group/drill-down behaviour without the native renderer.
+import { Text as MockRNText } from "react-native";
+
 jest.mock("@/charts", () => ({
-  WeeklyBars: ({ label }: { label: string }) => {
-    const { Text: RNText } = require("react-native");
-    return <RNText>{label}</RNText>;
-  },
+  WeeklyBars: ({ label }: { label: string }) => <MockRNText>{label}</MockRNText>,
 }));
 
 const weekStarts = [1_000, 2_000];
