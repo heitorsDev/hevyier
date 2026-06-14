@@ -18,7 +18,15 @@ jest.mock("@/repos/sessionsRepo", () => ({
   startSessionFromPlan: () => 1,
   summarizeSession: () => ({ totalSets: 0, workVolumeKg: 0 }),
 }));
-jest.mock("@/repos/scheduleRepo", () => ({ getPlanIdForDay: () => null }));
+jest.mock("@/repos/scheduleRepo", () => ({
+  getPlanIdForDay: () => null,
+  listWeekSchedule: () => [],
+}));
+jest.mock("@/repos/plansRepo", () => ({
+  listPlans: () => [],
+  listPlanExercises: () => [],
+  getPlan: () => undefined,
+}));
 
 // Phase 0 smoke test: the real app/ directory mounts and the Today tab
 // (initial route) renders inside the tabs shell.
