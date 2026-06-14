@@ -37,3 +37,6 @@ export const tabBarHeight = 64;
 export const GREEN = "#00FF00";
 // Semi-transparent green used as pulse background on the today plan row.
 export const GREEN_PULSE_BG = "rgba(0,255,0,0.08)";
+
+// Icon size for bottom tab bar buttons.
+export const tabBarIconSize = 28;
