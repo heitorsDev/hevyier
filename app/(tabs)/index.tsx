@@ -107,7 +107,7 @@ export default function TodayTab() {
         <BrutalButton
           label="RESUME SESSION"
           variant="primary"
-          onPress={() => openSession(view.active!.id)}
+          onPress={() => openSession(view.active.id)}
         />
       ) : null}
 

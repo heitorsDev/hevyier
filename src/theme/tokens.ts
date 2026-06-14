@@ -32,3 +32,6 @@ export const touchTarget = 48;
 // Bottom tab bar height (dp). Taller than RN's ~50dp default so tab
 // switches land reliably with thumbs mid-workout.
 export const tabBarHeight = 64;
+
+// Icon size for bottom tab bar buttons.
+export const tabBarIconSize = 28;
