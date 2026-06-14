@@ -8,6 +8,8 @@ export const colors = {
   fg: "#FFF",
   muted: "#888",
   disabled: "#444",
+  // Today-plan highlight: pulsing border + faint bg tint on the Today row.
+  today: "#00FF00",
 } as const;
 
 export const border = 1;

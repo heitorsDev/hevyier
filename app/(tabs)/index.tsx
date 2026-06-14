@@ -31,8 +31,6 @@ import {
 } from "@/repos/sessionsRepo";
 import { border, colors, fontFamilyMono, fontSize, touchTarget } from "@/theme/tokens";
 
-const GREEN = "#00FF00";
-
 interface PlanMeta {
   plan: PlanRow;
   exerciseCount: number;
@@ -208,7 +206,7 @@ function PlanPickerRow({
   }, [isToday, pulse]);
 
   const animatedBorder = isToday
-    ? pulse.interpolate({ inputRange: [0, 1], outputRange: [colors.fg, GREEN] })
+    ? pulse.interpolate({ inputRange: [0, 1], outputRange: [colors.fg, colors.today] })
     : undefined;
   const animatedBg = isToday
     ? pulse.interpolate({
@@ -322,7 +320,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: fontFamilyMono,
   },
-  todayName: { color: GREEN },
+  todayName: { color: colors.today },
   rowSub: { color: colors.muted, fontSize: fontSize.small },
   nudge: { color: colors.muted, fontSize: fontSize.small, letterSpacing: 0.5 },
   emptyState: { gap: 6 },
