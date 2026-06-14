@@ -40,16 +40,31 @@ export default function PlanEditorScreen() {
   const planId = Number(params.id);
   const [name, setName] = useState("");
   const [rows, setRows] = useState<PlanExerciseRow[]>([]);
+  const [savedRows, setSavedRows] = useState<PlanExerciseRow[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const reload = useCallback(() => {
     setName(getPlan(appDb, planId)?.name ?? "");
-    setRows(listPlanExercises(appDb, planId));
+    const loaded = listPlanExercises(appDb, planId);
+    setRows(loaded);
+    setSavedRows(loaded);
   }, [planId]);
   useFocusEffect(reload);
 
-  const persistName = () => renamePlan(appDb, planId, name);
+  const savePlan = () => {
+    renamePlan(appDb, planId, name);
+    rows.forEach((row) => {
+      updatePlanExerciseSets(appDb, row.id, {
+        warmupSets: row.warmupSets,
+        workSets: row.workSets,
+      });
+    });
+    persistReorder(savedRows, rows);
+    setSavedRows(rows);
+  };
+
   const addExercise = (exerciseId: number) => {
+    savePlan();
     addExerciseToPlan(appDb, {
       planId,
       exerciseId,
@@ -61,8 +76,7 @@ export default function PlanEditorScreen() {
     reload();
   };
   const reorder = (next: PlanExerciseRow[]) => {
-    persistReorder(rows, next);
-    reload();
+    setRows(next);
   };
   const confirmDelete = () => {
     Alert.alert("DELETE PLAN", `Delete "${name}"?`, [
@@ -84,7 +98,6 @@ export default function PlanEditorScreen() {
         style={styles.nameInput}
         value={name}
         onChangeText={setName}
-        onEndEditing={persistName}
         placeholder="PLAN NAME"
         placeholderTextColor={colors.muted}
       />
@@ -101,6 +114,7 @@ export default function PlanEditorScreen() {
           onMoveUp={() => reorder(moveUp(rows, row.id))}
           onMoveDown={() => reorder(moveDown(rows, row.id))}
           onRemove={() => {
+            savePlan();
             removeExerciseFromPlan(appDb, row.id);
             reload();
           }}
@@ -108,6 +122,7 @@ export default function PlanEditorScreen() {
       ))}
       <BrutalButton label="+ ADD EXERCISE" onPress={() => setPickerOpen(true)} />
       <View style={styles.footer}>
+        <BrutalButton label="SAVE PLAN" onPress={savePlan} />
         <BrutalButton label="DELETE PLAN" variant="danger" onPress={confirmDelete} />
       </View>
 
@@ -121,7 +136,7 @@ export default function PlanEditorScreen() {
   );
 }
 
-/** Persist set count change and patch local state without a re-query. */
+/** Patch local state only — deferred to Save button. */
 function updateSets(
   row: PlanExerciseRow,
   field: "warmupSets" | "workSets",
@@ -129,10 +144,6 @@ function updateSets(
   setRows: React.Dispatch<React.SetStateAction<PlanExerciseRow[]>>,
 ): void {
   const next = { ...row, [field]: value };
-  updatePlanExerciseSets(appDb, row.id, {
-    warmupSets: next.warmupSets,
-    workSets: next.workSets,
-  });
   setRows((prev) => prev.map((r) => (r.id === row.id ? next : r)));
 }
 
@@ -199,5 +210,5 @@ const styles = StyleSheet.create({
   },
   exerciseName: { color: colors.fg, fontSize: fontSize.body },
   muted: { color: colors.muted, fontSize: fontSize.small },
-  footer: { marginTop: 24 },
+  footer: { marginTop: 24, gap: 8 },
 });
