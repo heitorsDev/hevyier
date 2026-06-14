@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { appDb } from "@/db/bootstrap";
 import {
@@ -39,21 +39,29 @@ interface InitialState {
  * Builds rows once (lazy init) from plan counts + already-logged sets so
  * re-renders never clobber in-progress edits; ✓ toggles persist to the DB
  * while weight/reps live in state until checked.
+ *
+ * When `onSetChecked` is provided, ✓ marks the row pending and defers the
+ * DB insert — `onSetChecked` receives a `commit` callback that must be called
+ * to finalise the insert (the rest timer calls it on dismiss/expiry).
+ * When `onSetChecked` is undefined (History edit mode) the insert is immediate.
  */
 export function useSetRows(
   sessionId: number,
   sessionExerciseId: number,
-  // Fired after a set is checked off (decision #6 — starts the rest timer).
+  // Fired after ✓ — starts the rest timer and receives the deferred commit.
   // Undefined in History edit mode so finished sessions never start a timer.
-  onSetChecked?: (type: "warmup" | "work", exerciseName: string) => void,
+  onSetChecked?: (type: "warmup" | "work", exerciseName: string, commit: () => void) => void,
 ): SetRowsController {
   const [initial] = useState<InitialState>(() =>
     loadInitialState(sessionId, sessionExerciseId),
   );
   const [rows, setRows] = useState<SetRowState[]>(initial.rows);
   const [activeIndex, setActiveIndex] = useState<number>(initial.activeIndex);
+  // Incremented on every pending-cancel so that in-flight commit fns become no-ops.
+  const commitNonce = useRef(0);
   const notifyChecked = onSetChecked
-    ? (type: "warmup" | "work") => onSetChecked(type, initial.exerciseName)
+    ? (type: "warmup" | "work", commit: () => void) =>
+        onSetChecked(type, initial.exerciseName, commit)
     : undefined;
 
   const setWeight = (index: number, kg: number) =>
@@ -67,7 +75,15 @@ export function useSetRows(
     }));
 
   const toggleCheck = (index: number) =>
-    handleToggle(sessionExerciseId, rows, index, setRows, setActiveIndex, notifyChecked);
+    handleToggle(
+      sessionExerciseId,
+      rows,
+      index,
+      setRows,
+      setActiveIndex,
+      notifyChecked,
+      commitNonce,
+    );
   const addSet = (type: "warmup" | "work") =>
     setRows((prev) => appendBlankSet(prev, type));
 
@@ -113,56 +129,86 @@ function plannedCounts(
   return { warmup: match.warmupSets, work: match.workSets };
 }
 
-/** First blank (unchecked) row index, else 0 — the default active row. */
+/** First blank (unchecked, non-pending) row index, else 0. */
 function firstBlankIndex(rows: SetRowState[]): number {
-  const index = rows.findIndex((row) => row.setId === null);
+  const index = rows.findIndex((row) => row.setId === null && !row.isPending);
   return index === -1 ? 0 : index;
 }
 
-/** ✓ toggle: persist+advance when checking, delete-but-keep when un-checking. */
+/** ✓ toggle: check/uncheck/cancel-pending depending on row state. */
 function handleToggle(
   sessionExerciseId: number,
   rows: SetRowState[],
   index: number,
   setRows: SetStateRows,
   setActiveIndex: (index: number) => void,
-  onChecked: ((type: "warmup" | "work") => void) | undefined,
+  onChecked: ((type: "warmup" | "work", commit: () => void) => void) | undefined,
+  commitNonce: React.MutableRefObject<number>,
 ): void {
   const row = rows[index];
   if (row.setId !== null) {
     uncheckRow(setRows, index, row.setId);
     return;
   }
-  checkRow(sessionExerciseId, rows, index, setRows, setActiveIndex, onChecked);
+  if (row.isPending) {
+    // Cancel the deferred insert — invalidate the in-flight commit fn.
+    commitNonce.current++;
+    patchRow(setRows, index, (r) => ({ ...r, isPending: false }));
+    return;
+  }
+  checkRow(sessionExerciseId, rows, index, setRows, setActiveIndex, onChecked, commitNonce);
 }
 
-/** Un-check: delete the set; weight/reps stay in local state (decision #5). */
+/** Un-check committed set: delete from DB; weight/reps stay (decision #5). */
 function uncheckRow(setRows: SetStateRows, index: number, setId: number): void {
   deleteSet(appDb, setId);
   patchRow(setRows, index, (row) => ({ ...row, setId: null }));
 }
 
-/** Check: validate, insert a set, stamp the id, advance to next blank row. */
+/**
+ * Check: validate, mark pending, advance active row, then either commit
+ * immediately (no timer callback) or defer via the commit fn passed to
+ * `onChecked`.
+ */
 function checkRow(
   sessionExerciseId: number,
   rows: SetRowState[],
   index: number,
   setRows: SetStateRows,
   setActiveIndex: (index: number) => void,
-  onChecked: ((type: "warmup" | "work") => void) | undefined,
+  onChecked: ((type: "warmup" | "work", commit: () => void) => void) | undefined,
+  commitNonce: React.MutableRefObject<number>,
 ): void {
   const row = rows[index];
   if (!isCheckable(row)) return;
-  const id = createSet(appDb, {
-    sessionExerciseId,
-    type: row.type,
-    weightKg: row.weightKg as number,
-    reps: row.reps as number,
-    loggedAt: Date.now(),
-  });
-  patchRow(setRows, index, (current) => ({ ...current, setId: id }));
+
+  // Capture timestamp now so loggedAt reflects when ✓ was pressed,
+  // not when the rest timer fires (~90s later).
+  const loggedAt = Date.now();
+  // Commit fn — guarded by nonce so an uncheck cancels it even after the
+  // timer has already called scheduleRestOver.
+  const nonce = commitNonce.current;
+  const commit = () => {
+    if (commitNonce.current !== nonce) return;
+    const id = createSet(appDb, {
+      sessionExerciseId,
+      type: row.type,
+      weightKg: row.weightKg as number,
+      reps: row.reps as number,
+      loggedAt,
+    });
+    patchRow(setRows, index, (current) => ({ ...current, isPending: false, setId: id }));
+  };
+
+  patchRow(setRows, index, (current) => ({ ...current, isPending: true }));
   setActiveIndex(nextBlankIndex(rows, index));
-  onChecked?.(row.type); // starts the rest timer (decision #6)
+
+  if (!onChecked) {
+    // No timer callback (History edit mode) — insert immediately.
+    commit();
+    return;
+  }
+  onChecked(row.type, commit);
 }
 
 /** Checkable iff weight ≥ 0 (bodyweight 0 allowed) and reps ≥ 1 (decision #5). */
@@ -171,10 +217,10 @@ function isCheckable(row: SetRowState): boolean {
   return row.reps !== null && row.reps >= 1;
 }
 
-/** Next still-blank row after `from`; falls back to `from` when none. */
+/** Next blank (non-pending) row after `from`; falls back to `from` when none. */
 function nextBlankIndex(rows: SetRowState[], from: number): number {
   for (let index = from + 1; index < rows.length; index++) {
-    if (rows[index].setId === null) return index;
+    if (rows[index].setId === null && !rows[index].isPending) return index;
   }
   return from;
 }
