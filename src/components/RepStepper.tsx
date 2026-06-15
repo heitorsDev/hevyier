@@ -1,5 +1,10 @@
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
 
+import {
+  AnimatedPressable,
+  AnimatedText,
+  usePressInvert,
+} from "@/components/usePressFlash";
 import {
   border,
   colors,
@@ -29,28 +34,44 @@ export function RepStepper({
   // Container provides the outer frame; buttons draw only internal dividers.
   return (
     <View style={styles.strip}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="decrement reps"
-        disabled={disabled}
-        onPress={decrement}
-        style={styles.decBtn}
-      >
-        <Text style={[styles.btnLabel, disabled && styles.disabledText]}>−</Text>
-      </Pressable>
+      <RepButton label="−" onPress={decrement} disabled={disabled} side="left" />
       <Text style={[styles.value, disabled && styles.disabledText]}>
         {reps === null ? "—" : String(reps)}
       </Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="increment reps"
-        disabled={disabled}
-        onPress={increment}
-        style={styles.incBtn}
-      >
-        <Text style={[styles.btnLabel, disabled && styles.disabledText]}>+</Text>
-      </Pressable>
+      <RepButton label="+" onPress={increment} disabled={disabled} side="right" />
     </View>
+  );
+}
+
+const REST = { bg: colors.bg, fg: colors.fg };
+const PRESS = { bg: colors.fg, fg: colors.bg };
+
+function RepButton({
+  label,
+  onPress,
+  disabled,
+  side,
+}: {
+  label: string;
+  onPress: () => void;
+  disabled: boolean;
+  side: "left" | "right";
+}) {
+  const flash = usePressInvert(REST, PRESS);
+  return (
+    <AnimatedPressable
+      accessibilityRole="button"
+      accessibilityLabel={label === "−" ? "decrement reps" : "increment reps"}
+      disabled={disabled}
+      onPress={onPress}
+      onPressIn={flash.onPressIn}
+      onPressOut={flash.onPressOut}
+      style={[side === "left" ? styles.decBtn : styles.incBtn, !disabled && flash.bgStyle]}
+    >
+      <AnimatedText style={[styles.btnLabel, disabled ? styles.disabledText : flash.labelStyle]}>
+        {label}
+      </AnimatedText>
+    </AnimatedPressable>
   );
 }
 
