@@ -122,3 +122,17 @@
 
 - Structured JSON when logging for debugging / observability.
 - Plain text only for user-facing CLI output.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and PRDs live in GitHub Issues (`heitorsDev/hevyier`), via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five canonical triage roles, default label strings. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` + `docs/adr/` at repo root. See `docs/agents/domain.md`.
