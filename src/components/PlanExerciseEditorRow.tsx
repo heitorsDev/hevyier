@@ -43,7 +43,7 @@ export function PlanExerciseEditorRow({
         </View>
       </View>
       <View style={styles.stepperLine}>
-        <LabeledStepper label="W" value={warmupSets} onChange={onWarmupChange} />
+        <LabeledStepper label="WARMUP" value={warmupSets} onChange={onWarmupChange} />
         <LabeledStepper label="WORK" value={workSets} onChange={onWorkChange} />
       </View>
     </View>
@@ -116,7 +116,12 @@ const styles = StyleSheet.create({
   },
   iconLabel: { color: colors.fg, fontSize: fontSize.body, fontWeight: "700" },
   disabledLabel: { color: colors.disabled },
-  stepperLine: { flexDirection: "row", justifyContent: "space-between" },
+  stepperLine: { gap: 8 },
   labeled: { flexDirection: "row", alignItems: "center", gap: 8 },
-  setLabel: { color: colors.muted, fontSize: fontSize.small, fontWeight: "700" },
+  setLabel: {
+    color: colors.muted,
+    fontSize: fontSize.small,
+    fontWeight: "700",
+    minWidth: 64,
+  },
 });
