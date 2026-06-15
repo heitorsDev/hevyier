@@ -86,15 +86,17 @@ export default function TodayTab() {
     openSession(startSessionFromPlan(appDb, modal.planId, Date.now()));
   }, [modal, openSession]);
 
+  // Bind to a const so the truthy check narrows inside the onPress closure.
+  const active = view.active;
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.header}>{formatDateHeader(view.headerMs)}</Text>
 
-      {view.active ? (
+      {active ? (
         <BrutalButton
           label="RESUME SESSION"
           variant="primary"
-          onPress={() => openSession(view.active.id)}
+          onPress={() => openSession(active.id)}
         />
       ) : null}
 

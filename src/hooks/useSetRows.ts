@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { appDb } from "@/db/bootstrap";
 import {
@@ -55,24 +55,37 @@ export function useSetRows(
   );
   const [rows, setRows] = useState<SetRowState[]>(initial.rows);
   const [activeIndex, setActiveIndex] = useState<number>(initial.activeIndex);
+  // Source of truth for reads inside event handlers. React state lags by a
+  // render, and native touches queue: tapping reps/weight then ✓ in the same
+  // frame would otherwise check against pre-update rows and drop the set
+  // (#7 follow-up). The ref is written synchronously by every mutator, so ✓
+  // always sees the freshest weight/reps regardless of render timing.
+  const rowsRef = useRef<SetRowState[]>(rows);
+  const mutate = (update: (prev: SetRowState[]) => SetRowState[]) => {
+    const next = update(rowsRef.current);
+    rowsRef.current = next;
+    setRows(next);
+  };
   const notifyChecked = onSetChecked
     ? (type: "warmup" | "work") => onSetChecked(type, initial.exerciseName)
     : undefined;
 
   const setWeight = (index: number, kg: number) =>
-    patchRow(setRows, index, (row) => ({ ...row, weightKg: kg }));
+    mutate((prev) => patchRow(prev, index, (row) => ({ ...row, weightKg: kg })));
   const setReps = (index: number, reps: number) =>
-    patchRow(setRows, index, (row) => ({ ...row, reps }));
+    mutate((prev) => patchRow(prev, index, (row) => ({ ...row, reps })));
   const nudgeActiveWeight = (deltaKg: number) =>
-    patchRow(setRows, activeIndex, (row) => ({
-      ...row,
-      weightKg: applyWeightDelta(row.weightKg, deltaKg),
-    }));
+    mutate((prev) =>
+      patchRow(prev, activeIndex, (row) => ({
+        ...row,
+        weightKg: applyWeightDelta(row.weightKg, deltaKg),
+      })),
+    );
 
   const toggleCheck = (index: number) =>
-    handleToggle(sessionExerciseId, rows, index, setRows, setActiveIndex, notifyChecked);
+    handleToggle(sessionExerciseId, rowsRef.current, index, mutate, setActiveIndex, notifyChecked);
   const addSet = (type: "warmup" | "work") =>
-    setRows((prev) => appendBlankSet(prev, type));
+    mutate((prev) => appendBlankSet(prev, type));
 
   return {
     exerciseName: initial.exerciseName,
@@ -127,22 +140,22 @@ function handleToggle(
   sessionExerciseId: number,
   rows: SetRowState[],
   index: number,
-  setRows: SetStateRows,
+  mutate: MutateRows,
   setActiveIndex: (index: number) => void,
   onChecked: ((type: "warmup" | "work") => void) | undefined,
 ): void {
   const row = rows[index];
   if (row.setId !== null) {
-    uncheckRow(setRows, index, row.setId);
+    uncheckRow(mutate, index, row.setId);
     return;
   }
-  checkRow(sessionExerciseId, rows, index, setRows, setActiveIndex, onChecked);
+  checkRow(sessionExerciseId, rows, index, mutate, setActiveIndex, onChecked);
 }
 
 /** Un-check committed set: delete from DB; weight/reps stay (decision #5). */
-function uncheckRow(setRows: SetStateRows, index: number, setId: number): void {
+function uncheckRow(mutate: MutateRows, index: number, setId: number): void {
   deleteSet(appDb, setId);
-  patchRow(setRows, index, (row) => ({ ...row, setId: null }));
+  mutate((prev) => patchRow(prev, index, (row) => ({ ...row, setId: null })));
 }
 
 /**
@@ -154,7 +167,7 @@ function checkRow(
   sessionExerciseId: number,
   rows: SetRowState[],
   index: number,
-  setRows: SetStateRows,
+  mutate: MutateRows,
   setActiveIndex: (index: number) => void,
   onChecked: ((type: "warmup" | "work") => void) | undefined,
 ): void {
@@ -168,7 +181,7 @@ function checkRow(
     reps: row.reps as number,
     loggedAt: Date.now(),
   });
-  patchRow(setRows, index, (current) => ({ ...current, setId: id }));
+  mutate((prev) => patchRow(prev, index, (current) => ({ ...current, setId: id })));
   setActiveIndex(nextBlankIndex(rows, index));
   onChecked?.(row.type);
 }
@@ -187,13 +200,13 @@ function nextBlankIndex(rows: SetRowState[], from: number): number {
   return from;
 }
 
-type SetStateRows = (updater: (prev: SetRowState[]) => SetRowState[]) => void;
+type MutateRows = (update: (prev: SetRowState[]) => SetRowState[]) => void;
 
-/** Replace one row by index via a pure updater. */
+/** Return a new row list with one row replaced by index via a pure updater. */
 function patchRow(
-  setRows: SetStateRows,
+  rows: SetRowState[],
   index: number,
   update: (row: SetRowState) => SetRowState,
-): void {
-  setRows((prev) => prev.map((row, i) => (i === index ? update(row) : row)));
+): SetRowState[] {
+  return rows.map((row, i) => (i === index ? update(row) : row));
 }
