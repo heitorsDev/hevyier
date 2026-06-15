@@ -63,6 +63,15 @@
   in `docs/RELEASING.md` step by step. Do not push a tag without
   confirming the version and passing the preflight checks.
 
+## Running on web
+
+- Web is browser-preview only. **Use `npm run web`** (builds `dist/` +
+  serves on `:8085` with cross-origin-isolation headers). Never use
+  `expo start --web`, `npm start` → web, or the IDE preview button — the
+  dev server can't set COOP/COEP on the top-level document, so
+  `SharedArrayBuffer` is unavailable and expo-sqlite's web backend throws.
+  Full explanation + troubleshooting in `docs/WEB.md`.
+
 ## Code style
 
 - Functions: 4-20 lines. Split if longer.
