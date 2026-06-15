@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Platform, View, Text, ActivityIndicator } from "react-native";
 
+import { HeaderBackLink } from "@/components/HeaderBackLink";
 import { useDatabaseReady, useWebRuntimeWarm } from "@/db/bootstrap";
 import { colors, fontSize } from "@/theme/tokens";
 
@@ -52,7 +53,10 @@ function ReadyGate() {
         />
         <Stack.Screen name="settings" options={{ title: "SETTINGS" }} />
         <Stack.Screen name="history/[id]" options={{ title: "SESSION" }} />
-        <Stack.Screen name="exercise/[id]" options={{ title: "EXERCISE" }} />
+        <Stack.Screen
+          name="exercise/[id]"
+          options={{ title: "EXERCISE", headerLeft: () => <HeaderBackLink /> }}
+        />
         <Stack.Screen name="plan/[id]" options={{ title: "PLAN" }} />
       </Stack>
     </>
