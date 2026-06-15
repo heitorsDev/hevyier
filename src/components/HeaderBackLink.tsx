@@ -10,8 +10,11 @@ import { colors, fontSize, touchTarget } from "@/theme/tokens";
  */
 export function HeaderBackLink() {
   const router = useRouter();
+  // On a web deep-link / refresh there is no history to pop, so back() would
+  // be a silent no-op (#13) — fall back to the tabs root instead.
+  const goBack = () => (router.canGoBack() ? router.back() : router.replace("/"));
   return (
-    <Pressable onPress={() => router.back()} accessibilityLabel="Go back" accessibilityRole="button">
+    <Pressable onPress={goBack} accessibilityLabel="Go back">
       <Text style={styles.arrow}>←</Text>
     </Pressable>
   );
