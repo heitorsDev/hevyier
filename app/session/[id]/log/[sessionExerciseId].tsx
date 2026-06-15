@@ -1,5 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
+  useFocusEffect,
   useLocalSearchParams,
   useRouter,
   type ImperativeRouter,
@@ -70,6 +71,12 @@ export default function ExerciseLoggingScreen() {
     (seId: number) => navigateTo(router, sessionId, seId, params.mode),
     [router, sessionId, params.mode],
   );
+  // Flush on blur so an entered-but-unchecked set is never lost on navigation.
+  // flushUnsaved reads a live ref internally, so a ref to the latest closure
+  // is enough; an empty-dep focus effect keeps it from re-subscribing.
+  const flush = useRef(setRows.flushUnsaved);
+  flush.current = setRows.flushUnsaved;
+  useFocusEffect(useCallback(() => () => flush.current(), []));
   const nav = neighbours(sessionId, sessionExerciseId);
 
   return (
