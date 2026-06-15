@@ -1,6 +1,7 @@
 import { createExercise } from "@/repos/exercisesRepo";
 import {
   addExerciseToSession,
+  deleteEmptyUnfinishedSessions,
   deleteSession,
   findActiveSession,
   finishSession,
@@ -68,6 +69,48 @@ test("session exercises: add, ordered list, remove", () => {
 
   removeSessionExercise(fixture.db, first);
   expect(listSessionExercises(fixture.db, sessionId)).toHaveLength(1);
+});
+
+test("deleteEmptyUnfinishedSessions removes drafts with no logged sets", () => {
+  const empty = startSession(fixture.db, null, 1_000);
+  addExerciseToSession(fixture.db, {
+    sessionId: empty,
+    exerciseId: createRow(),
+    order: 0,
+  });
+
+  deleteEmptyUnfinishedSessions(fixture.db);
+
+  expect(getSession(fixture.db, empty)).toBeUndefined();
+});
+
+test("deleteEmptyUnfinishedSessions keeps an unfinished session with a set", () => {
+  const live = startSession(fixture.db, null, 1_000);
+  const sessionExerciseId = addExerciseToSession(fixture.db, {
+    sessionId: live,
+    exerciseId: createRow(),
+    order: 0,
+  });
+  createSet(fixture.db, {
+    sessionExerciseId,
+    type: "work",
+    weightKg: 60,
+    reps: 10,
+    loggedAt: 1_500,
+  });
+
+  deleteEmptyUnfinishedSessions(fixture.db);
+
+  expect(findActiveSession(fixture.db)?.id).toBe(live);
+});
+
+test("deleteEmptyUnfinishedSessions keeps a finished empty session", () => {
+  const done = startSession(fixture.db, null, 1_000);
+  finishSession(fixture.db, done, 2_000);
+
+  deleteEmptyUnfinishedSessions(fixture.db);
+
+  expect(getSession(fixture.db, done)?.finishedAt).toBe(2_000);
 });
 
 test("delete session cascades exercises and their sets", () => {
