@@ -1,17 +1,16 @@
 import type { SetRow } from "@/repos/setsRepo";
 
 // One editable line on the logging screen. `setId === null` means no `sets`
-// row exists yet. `isPending` means ✓ was pressed and the rest timer is
-// running — the DB insert is deferred until the timer ends / is dismissed.
-// weightKg / reps are null until the lifter touches the controls (blank rows
-// start empty — last session is never pre-filled, decision #7).
+// row exists yet; pressing ✓ inserts the row immediately (decision #5) and
+// fills `setId`. weightKg / reps are null until the lifter touches the
+// controls (blank rows start empty — last session is never pre-filled,
+// decision #7).
 export interface SetRowState {
   label: string;
   type: "warmup" | "work";
   weightKg: number | null;
   reps: number | null;
   setId: number | null;
-  isPending: boolean;
 }
 
 /**
@@ -57,7 +56,7 @@ function toRow(
 ): SetRowState {
   const label = type === "warmup" ? `W${index + 1}` : `${index + 1}`;
   if (!logged) {
-    return { label, type, weightKg: null, reps: null, setId: null, isPending: false };
+    return { label, type, weightKg: null, reps: null, setId: null };
   }
   return {
     label,
@@ -65,7 +64,6 @@ function toRow(
     weightKg: logged.weightKg,
     reps: logged.reps,
     setId: logged.id,
-    isPending: false,
   };
 }
 
@@ -91,7 +89,7 @@ export function appendBlankSet(
   rows: SetRowState[],
   type: "warmup" | "work",
 ): SetRowState[] {
-  const blank: SetRowState = { label: "", type, weightKg: null, reps: null, setId: null, isPending: false };
+  const blank: SetRowState = { label: "", type, weightKg: null, reps: null, setId: null };
   return relabel([...rows, blank]);
 }
 

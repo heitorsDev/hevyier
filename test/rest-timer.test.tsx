@@ -155,52 +155,25 @@ test("RestTimerBanner shows a countdown while a timer is active", async () => {
   expect(screen.getByText(/^\d+:\d{2}$/)).toBeTruthy();
 });
 
-test("onCommit is called when the timer is dismissed", async () => {
-  const { result } = renderController();
-  const commit = jest.fn();
-
-  await act(async () => result.current.start("work", "Bench", commit));
-  expect(commit).not.toHaveBeenCalled();
-
-  await act(async () => result.current.dismiss());
-  expect(commit).toHaveBeenCalledTimes(1);
-});
-
-test("starting a new timer commits the previous pending set", async () => {
-  const { result } = renderController();
-  const commit1 = jest.fn();
-  const commit2 = jest.fn();
-
-  await act(async () => result.current.start("work", "Bench", commit1));
-  expect(commit1).not.toHaveBeenCalled();
-
-  await act(async () => result.current.start("warmup", "Squat", commit2));
-  // Previous set committed when new timer starts.
-  expect(commit1).toHaveBeenCalledTimes(1);
-  expect(commit2).not.toHaveBeenCalled();
-});
-
-test("0-second timer commits immediately without showing a timer", async () => {
+test("0-second rest shows no banner", async () => {
   setRestTimerSeconds(fixture.db, "work", 0);
   const { result } = renderController();
-  const commit = jest.fn();
 
-  await act(async () => result.current.start("work", "Bench", commit));
+  await act(async () => result.current.start("work", "Bench"));
 
-  expect(commit).toHaveBeenCalledTimes(1);
+  // 0s = "no rest": nothing scheduled, no countdown state.
   expect(result.current.state).toBeNull();
+  expect(notifier.scheduled).toHaveLength(0);
 });
 
-test("natural timer expiry: onCommit called when countdown reaches 0", async () => {
+test("natural timer expiry auto-dismisses the banner", async () => {
   // Use a 1-second timer so fake-timer advancement is minimal.
   setRestTimerSeconds(fixture.db, "work", 1);
   jest.useFakeTimers();
   try {
-    const commit = jest.fn();
-
     function Harness() {
       const { start } = useRestTimer();
-      React.useEffect(() => { start("work", "Bench", commit); }, [start]);
+      React.useEffect(() => { start("work", "Bench"); }, [start]);
       return <RestTimerBanner />;
     }
 
@@ -210,7 +183,7 @@ test("natural timer expiry: onCommit called when countdown reaches 0", async () 
       </RestTimerProvider>,
     );
 
-    expect(commit).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText("DISMISS")).toBeTruthy();
 
     // Advance past the 1-second endsAt so the banner's interval tick
     // sets now > endsAt, triggering the auto-dismiss useEffect.
@@ -218,7 +191,7 @@ test("natural timer expiry: onCommit called when countdown reaches 0", async () 
       jest.advanceTimersByTime(1100);
     });
 
-    expect(commit).toHaveBeenCalledTimes(1);
+    expect(screen.queryByLabelText("DISMISS")).toBeNull();
   } finally {
     jest.useRealTimers();
   }

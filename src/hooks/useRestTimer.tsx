@@ -22,9 +22,10 @@ export interface RestState {
 
 export interface RestTimerController {
   state: RestState | null;
-  // `onCommit` is called when the timer ends or is dismissed, committing the
-  // set to DB. If omitted (History edit mode), start is a no-op.
-  start: (setType: RestSetType, exerciseName: string, onCommit?: () => void) => void;
+  // Start the between-sets countdown + notification. Persistence is
+  // independent: the set is already saved before this is called (decision #5).
+  // A 0-second rest type shows no banner.
+  start: (setType: RestSetType, exerciseName: string) => void;
   dismiss: () => void;
 }
 
@@ -33,7 +34,7 @@ const RestTimerContext = createContext<RestTimerController | null>(null);
 /**
  * Access the shared rest timer. Must be called under <RestTimerProvider>.
  *
- * Usage: `const { start } = useRestTimer(); start("work", "Bench", commit);`
+ * Usage: `const { start } = useRestTimer(); start("work", "Bench");`
  */
 export function useRestTimer(): RestTimerController {
   const controller = useContext(RestTimerContext);
@@ -59,8 +60,6 @@ export function RestTimerProvider(props: {
   // cancelPending was called with pendingId still null).
   const activeNonce = useRef(0);
   const permissionAsked = useRef(false);
-  // The deferred set-commit from the most recent start() call.
-  const onCommitRef = useRef<(() => void) | null>(null);
 
   // Logging a set must never throw because of notification I/O — every
   // async call is fire-and-forget with swallowed errors.
@@ -81,23 +80,15 @@ export function RestTimerProvider(props: {
   // without re-firing on every render (an unstable start in a mount
   // effect loops setState forever).
   const start = useCallback(
-    (setType: RestSetType, exerciseName: string, onCommit?: () => void): void => {
+    (setType: RestSetType, exerciseName: string): void => {
       const seconds = getRestTimerSeconds(db, setType);
 
-      // If a previous set is still pending, commit it now before we move on.
-      const prevCommit = onCommitRef.current;
-      if (prevCommit) {
-        onCommitRef.current = null;
-        prevCommit();
-      }
-
-      // 0-second timer = "no rest" — commit immediately, no banner.
+      // 0-second rest = "no rest" — clear any banner, schedule nothing.
       if (seconds === 0) {
-        onCommit?.();
+        cancelPending();
+        setState(null);
         return;
       }
-
-      onCommitRef.current = onCommit ?? null;
 
       const nonce = ++activeNonce.current;
       const endsAt = Date.now() + seconds * 1000;
@@ -122,9 +113,6 @@ export function RestTimerProvider(props: {
   const dismiss = useCallback((): void => {
     activeNonce.current++;
     cancelPending();
-    const commit = onCommitRef.current;
-    onCommitRef.current = null;
-    commit?.();
     setState(null);
   }, [cancelPending]);
 
