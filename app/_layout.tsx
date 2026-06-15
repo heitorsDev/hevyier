@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { Platform, View, Text, ActivityIndicator } from "react-native";
 
 import { useDatabaseReady, useWebRuntimeWarm } from "@/db/bootstrap";
 import { colors, fontSize } from "@/theme/tokens";
@@ -9,8 +10,22 @@ export default function RootLayout() {
   // must warm up before any synchronous open / chart render. Native
   // returns warm immediately, so this collapses to the old single gate.
   const warm = useWebRuntimeWarm();
-  if (!warm) return null;
+  if (!warm) {
+    // Web only: show loading while wasm modules compile (5-30s on first load).
+    // Native returns warm=true immediately so this branch never executes there.
+    if (Platform.OS === "web") return <WebLoadingScreen />;
+    return null;
+  }
   return <ReadyGate />;
+}
+
+function WebLoadingScreen() {
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: "center", alignItems: "center", gap: 16 }}>
+      <ActivityIndicator color={colors.fg} size="large" />
+      <Text style={{ color: colors.fg, fontSize: fontSize.body, letterSpacing: 2 }}>LOADING</Text>
+    </View>
+  );
 }
 
 function ReadyGate() {
