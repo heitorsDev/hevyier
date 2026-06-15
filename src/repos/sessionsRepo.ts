@@ -84,6 +84,29 @@ export function deleteSession(db: DB, id: number): void {
   db.delete(sessions).where(eq(sessions.id, id)).run();
 }
 
+/**
+ * Delete unfinished sessions that have no logged sets — abandoned drafts
+ * left when a session was opened (the row inserts on open) but the user
+ * backed out without logging or finishing. Without this, those empty rows
+ * read as "active" and keep the Resume CTA up forever. Run on Today focus,
+ * when no session is open (the session stack is a fullScreenModal over the
+ * tabs), so it never touches the live session.
+ */
+export function deleteEmptyUnfinishedSessions(db: DB): void {
+  const empties = db
+    .select({ id: sessions.id })
+    .from(sessions)
+    .leftJoin(sessionExercises, eq(sessionExercises.sessionId, sessions.id))
+    .leftJoin(sets, eq(sets.sessionExerciseId, sessionExercises.id))
+    .where(isNull(sessions.finishedAt))
+    .groupBy(sessions.id)
+    .having(eq(count(sets.id), 0))
+    .all();
+  for (const row of empties) {
+    deleteSession(db, row.id);
+  }
+}
+
 export function addExerciseToSession(
   db: DB,
   draft: { sessionId: number; exerciseId: number; order: number },

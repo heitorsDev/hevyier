@@ -12,6 +12,7 @@ jest.mock("@/db/bootstrap", () => ({
 // The Today tab queries repos on mount; this smoke test only cares that
 // the shell + tabs render, so stub the reads to an empty/rest-day state.
 jest.mock("@/repos/sessionsRepo", () => ({
+  deleteEmptyUnfinishedSessions: () => undefined,
   findActiveSession: () => undefined,
   findLastFinishedSession: () => undefined,
   startSession: () => 1,
