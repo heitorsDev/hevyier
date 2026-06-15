@@ -84,6 +84,14 @@ test("deleteEmptyUnfinishedSessions removes drafts with no logged sets", () => {
   expect(getSession(fixture.db, empty)).toBeUndefined();
 });
 
+test("deleteEmptyUnfinishedSessions removes a draft with no exercises", () => {
+  const bare = startSession(fixture.db, null, 1_000);
+
+  deleteEmptyUnfinishedSessions(fixture.db);
+
+  expect(getSession(fixture.db, bare)).toBeUndefined();
+});
+
 test("deleteEmptyUnfinishedSessions keeps an unfinished session with a set", () => {
   const live = startSession(fixture.db, null, 1_000);
   const sessionExerciseId = addExerciseToSession(fixture.db, {
