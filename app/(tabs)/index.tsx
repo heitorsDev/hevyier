@@ -20,6 +20,7 @@ import {
 } from "@/repos/plansRepo";
 import { getPlanIdForDay, listWeekSchedule } from "@/repos/scheduleRepo";
 import {
+  deleteEmptyUnfinishedSessions,
   findActiveSession,
   findLastFinishedSession,
   startSession,
@@ -41,6 +42,9 @@ interface TodayView {
 }
 
 function readTodayView(): TodayView {
+  // Sweep abandoned empty drafts before reading the active session, so the
+  // Resume CTA never lingers for a session that was opened but never logged.
+  deleteEmptyUnfinishedSessions(appDb);
   const active = findActiveSession(appDb);
   const plans = listPlans(appDb);
   const todayPlanId = active ? null : getPlanIdForDay(appDb, new Date().getDay());
