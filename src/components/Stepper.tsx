@@ -1,5 +1,10 @@
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
 
+import {
+  AnimatedPressable,
+  AnimatedText,
+  usePressInvert,
+} from "@/components/usePressFlash";
 import {
   border,
   colors,
@@ -40,6 +45,9 @@ export function Stepper({
   );
 }
 
+const REST = { bg: colors.bg, fg: colors.fg };
+const PRESS = { bg: colors.fg, fg: colors.bg };
+
 function StepperButton({
   label,
   onPress,
@@ -51,18 +59,21 @@ function StepperButton({
   disabled: boolean;
   isLeft: boolean;
 }) {
+  const flash = usePressInvert(REST, PRESS);
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityLabel={label === "−" ? "decrement" : "increment"}
       disabled={disabled}
       onPress={onPress}
-      style={[styles.btn, isLeft ? styles.leftBtn : styles.rightBtn]}
+      onPressIn={flash.onPressIn}
+      onPressOut={flash.onPressOut}
+      style={[styles.btn, isLeft ? styles.leftBtn : styles.rightBtn, !disabled && flash.bgStyle]}
     >
-      <Text style={[styles.btnLabel, disabled && styles.disabledLabel]}>
+      <AnimatedText style={[styles.btnLabel, disabled ? styles.disabledLabel : flash.labelStyle]}>
         {label}
-      </Text>
-    </Pressable>
+      </AnimatedText>
+    </AnimatedPressable>
   );
 }
 

@@ -1,5 +1,10 @@
-import { Pressable, Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
+import {
+  AnimatedPressable,
+  AnimatedText,
+  usePressInvert,
+} from "@/components/usePressFlash";
 import { border, colors, fontSize, touchTarget } from "@/theme/tokens";
 
 export type ButtonVariant = "default" | "primary" | "danger";
@@ -7,7 +12,8 @@ export type ButtonVariant = "default" | "primary" | "danger";
 /**
  * Full-width bordered action button — the only button primitive in the app.
  * `primary` inverts (white fill / black text); `danger` keeps the outline
- * but its label is the caller's concern (e.g. "DELETE").
+ * but its label is the caller's concern (e.g. "DELETE"). Pressing flashes
+ * to the inverted colors and back.
  *
  * Usage: `<BrutalButton label="SAVE" variant="primary" onPress={save} />`
  */
@@ -23,28 +29,36 @@ export function BrutalButton({
   disabled?: boolean;
 }) {
   const primary = variant === "primary";
+  // Rest colors follow the variant; press inverts them.
+  const rest = primary ? { bg: colors.fg, fg: colors.bg } : { bg: colors.bg, fg: colors.fg };
+  const press = { bg: rest.fg, fg: rest.bg };
+  const flash = usePressInvert(rest, press);
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityLabel={label}
       disabled={disabled}
       onPress={onPress}
+      onPressIn={flash.onPressIn}
+      onPressOut={flash.onPressOut}
       style={[
         styles.button,
         primary && styles.primary,
+        !disabled && flash.bgStyle,
         disabled && styles.disabled,
       ]}
     >
-      <Text
+      <AnimatedText
         style={[
           styles.label,
           primary && styles.primaryLabel,
+          !disabled && flash.labelStyle,
           disabled && styles.disabledLabel,
         ]}
       >
         {label}
-      </Text>
-    </Pressable>
+      </AnimatedText>
+    </AnimatedPressable>
   );
 }
 
