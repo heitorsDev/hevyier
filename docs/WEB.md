@@ -70,6 +70,13 @@ The fix is to serve a static export from a server that sets the headers on
   (open :8085) or kill it: `pkill -f serve-web.js`.
 - **`SharedArrayBuffer is not defined` / sqlite open throws** — you're on the
   dev server (8081), not the static server (8085). Use `npm run web`.
+- **`NoModificationAllowedError: createSyncAccessHandle ... another open Access
+  Handle`** (warm-up fails, then `openDatabaseSync` throws) — OPFS allows only
+  one sync access handle on `hevyier.db` per origin, so expo-sqlite web is
+  single-tab. Close every other `localhost:8085` tab and hard-reload
+  (`Ctrl+Shift+R`) the one that remains. If a stale worker still holds the
+  lock, DevTools → Application → Storage → **Clear site data** → reload (wipes
+  only the browser's OPFS copy; the phone's SQLite is unaffected).
 - **`canvaskit.wasm` 404 or CORS error** — `web:build` wasn't run (no
   `public/canvaskit.wasm`), or you served `dist/` without `serve-web.js`.
 - **Stale UI after a code change** — `npm run web` rebuilds `dist/` from
