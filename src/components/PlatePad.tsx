@@ -1,5 +1,10 @@
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 
+import {
+  AnimatedPressable,
+  AnimatedText,
+  usePressInvert,
+} from "@/components/usePressFlash";
 import { border, colors, fontFamilyMono, fontSize, touchTarget } from "@/theme/tokens";
 
 const PLATES = [2.5, 5, 10, 15, 20] as const;
@@ -49,17 +54,23 @@ function PlateButton({
   isLast: boolean;
 }) {
   const label = `${delta > 0 ? "+" : "−"}${Math.abs(delta)}`;
+  const flash = usePressInvert(REST, PRESS);
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={() => onDelta(delta)}
-      style={[styles.button, isLast && styles.lastButton]}
+      onPressIn={flash.onPressIn}
+      onPressOut={flash.onPressOut}
+      style={[styles.button, isLast && styles.lastButton, flash.bgStyle]}
     >
-      <Text style={styles.label}>{label}</Text>
-    </Pressable>
+      <AnimatedText style={[styles.label, flash.labelStyle]}>{label}</AnimatedText>
+    </AnimatedPressable>
   );
 }
+
+const REST = { bg: colors.bg, fg: colors.fg };
+const PRESS = { bg: colors.fg, fg: colors.bg };
 
 const styles = StyleSheet.create({
   // Outer row provides the frame; buttons draw only internal dividers.
