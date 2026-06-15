@@ -1,10 +1,16 @@
-import { Pressable, Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
+import {
+  AnimatedPressable,
+  AnimatedText,
+  usePressInvert,
+} from "@/components/usePressFlash";
 import { border, colors, fontSize, touchTarget } from "@/theme/tokens";
 
 /**
  * Selectable bordered chip — selected state inverts (white fill / black
  * text), matching the brutalist "on = filled" convention used elsewhere.
+ * Pressing flashes toward the opposite of the current selection.
  *
  * Usage: `<Chip label="barbell" selected={eq === "barbell"} onPress={pick} />`
  */
@@ -17,18 +23,24 @@ export function Chip({
   selected: boolean;
   onPress: () => void;
 }) {
+  // Rest reflects the current selection; press flashes to the inverse.
+  const rest = selected ? { bg: colors.fg, fg: colors.bg } : { bg: colors.bg, fg: colors.fg };
+  const press = { bg: rest.fg, fg: rest.bg };
+  const flash = usePressInvert(rest, press);
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityState={{ selected }}
       accessibilityLabel={label}
       onPress={onPress}
-      style={[styles.chip, selected && styles.selected]}
+      onPressIn={flash.onPressIn}
+      onPressOut={flash.onPressOut}
+      style={[styles.chip, flash.bgStyle]}
     >
-      <Text style={[styles.label, selected && styles.selectedLabel]}>
+      <AnimatedText style={[styles.label, selected && styles.selectedWeight, flash.labelStyle]}>
         {label}
-      </Text>
-    </Pressable>
+      </AnimatedText>
+    </AnimatedPressable>
   );
 }
 
@@ -42,7 +54,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 14,
   },
-  selected: { backgroundColor: colors.fg },
   label: { color: colors.fg, fontSize: fontSize.body },
-  selectedLabel: { color: colors.bg, fontWeight: "700" },
+  selectedWeight: { fontWeight: "700" },
 });
