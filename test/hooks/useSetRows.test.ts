@@ -146,3 +146,74 @@ test("re-checking after an uncheck re-inserts the set (toggle is lossless)", asy
   expect(listSetsForSessionExercise(fixture.db, sessionExerciseId)).toHaveLength(1);
   expect(result.current.rows[0].setId).not.toBeNull();
 });
+
+// flushUnsaved is the safety net for the OK/✓ flow: a set the lifter filled
+// in but never checked (or whose ✓ press didn't commit) must still persist
+// when the screen blurs, so navigating away never drops it.
+test("flushUnsaved persists a valid row that was never checked", async () => {
+  const { result } = renderHook(() =>
+    useSetRows(sessionId, sessionExerciseId, jest.fn()),
+  );
+
+  await addValidWorkRow(result); // weight 60, reps 10, never checked
+  await act(async () => { result.current.flushUnsaved(); });
+
+  const sets = listSetsForSessionExercise(fixture.db, sessionExerciseId);
+  expect(sets).toHaveLength(1);
+  expect(sets[0]).toMatchObject({ type: "work", weightKg: 60, reps: 10 });
+  expect(result.current.rows[0].setId).toBe(sets[0].id);
+});
+
+test("flushUnsaved skips an incomplete row (no reps)", async () => {
+  const { result } = renderHook(() =>
+    useSetRows(sessionId, sessionExerciseId, jest.fn()),
+  );
+
+  await act(async () => { result.current.addSet("work"); });
+  await act(async () => { result.current.setWeight(0, 60); }); // no reps
+  await act(async () => { result.current.flushUnsaved(); });
+
+  expect(listSetsForSessionExercise(fixture.db, sessionExerciseId)).toHaveLength(0);
+  expect(result.current.rows[0].setId).toBeNull();
+});
+
+test("flushUnsaved does not re-insert an already-checked row", async () => {
+  const { result } = renderHook(() =>
+    useSetRows(sessionId, sessionExerciseId, jest.fn()),
+  );
+
+  await addValidWorkRow(result);
+  await act(async () => { result.current.toggleCheck(0); });
+  await act(async () => { result.current.flushUnsaved(); });
+
+  expect(listSetsForSessionExercise(fixture.db, sessionExerciseId)).toHaveLength(1);
+});
+
+test("flushUnsaved persists every valid unchecked row", async () => {
+  const { result } = renderHook(() =>
+    useSetRows(sessionId, sessionExerciseId, jest.fn()),
+  );
+
+  await act(async () => { result.current.addSet("work"); });
+  await act(async () => { result.current.addSet("work"); });
+  await act(async () => { result.current.setWeight(0, 50); });
+  await act(async () => { result.current.setReps(0, 8); });
+  await act(async () => { result.current.setWeight(1, 60); });
+  await act(async () => { result.current.setReps(1, 6); });
+  await act(async () => { result.current.flushUnsaved(); });
+
+  expect(listSetsForSessionExercise(fixture.db, sessionExerciseId)).toHaveLength(2);
+});
+
+test("flushUnsaved never starts the rest timer", async () => {
+  const onSetChecked = jest.fn();
+  const { result } = renderHook(() =>
+    useSetRows(sessionId, sessionExerciseId, onSetChecked),
+  );
+
+  await addValidWorkRow(result);
+  await act(async () => { result.current.flushUnsaved(); });
+
+  expect(listSetsForSessionExercise(fixture.db, sessionExerciseId)).toHaveLength(1);
+  expect(onSetChecked).not.toHaveBeenCalled();
+});

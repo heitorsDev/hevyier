@@ -26,6 +26,7 @@ export interface SetRowsController {
   nudgeActiveWeight: (deltaKg: number) => void;
   toggleCheck: (index: number) => void;
   addSet: (type: "warmup" | "work") => void;
+  flushUnsaved: () => void;
 }
 
 interface InitialState {
@@ -86,6 +87,8 @@ export function useSetRows(
     handleToggle(sessionExerciseId, rowsRef.current, index, mutate, setActiveIndex, notifyChecked);
   const addSet = (type: "warmup" | "work") =>
     mutate((prev) => appendBlankSet(prev, type));
+  const flushUnsaved = () =>
+    flushUnsavedRows(sessionExerciseId, rowsRef.current, mutate);
 
   return {
     exerciseName: initial.exerciseName,
@@ -97,6 +100,7 @@ export function useSetRows(
     nudgeActiveWeight,
     toggleCheck,
     addSet,
+    flushUnsaved,
   };
 }
 
@@ -174,16 +178,41 @@ function checkRow(
   const row = rows[index];
   if (!isCheckable(row)) return;
 
-  const id = createSet(appDb, {
+  const id = persistRow(sessionExerciseId, row);
+  mutate((prev) => patchRow(prev, index, (current) => ({ ...current, setId: id })));
+  setActiveIndex(nextBlankIndex(rows, index));
+  onChecked?.(row.type);
+}
+
+/**
+ * Safety net for the OK/✓ flow: on screen blur/unmount, persist every row
+ * the lifter filled in but never checked. The user's loss bug was entered
+ * sets vanishing on navigation when the ✓ press didn't commit; flushing here
+ * makes that loss impossible. No timer, no active-row advance — we're leaving.
+ * Already-checked (setId set) and incomplete (failed isCheckable) rows are
+ * skipped, so a flush can never double-insert or write a partial set.
+ */
+function flushUnsavedRows(
+  sessionExerciseId: number,
+  rows: SetRowState[],
+  mutate: MutateRows,
+): void {
+  rows.forEach((row, index) => {
+    if (row.setId !== null || !isCheckable(row)) return;
+    const id = persistRow(sessionExerciseId, row);
+    mutate((prev) => patchRow(prev, index, (current) => ({ ...current, setId: id })));
+  });
+}
+
+/** Insert a validated row's values as a `sets` row; returns the new id. */
+function persistRow(sessionExerciseId: number, row: SetRowState): number {
+  return createSet(appDb, {
     sessionExerciseId,
     type: row.type,
     weightKg: row.weightKg as number,
     reps: row.reps as number,
     loggedAt: Date.now(),
   });
-  mutate((prev) => patchRow(prev, index, (current) => ({ ...current, setId: id })));
-  setActiveIndex(nextBlankIndex(rows, index));
-  onChecked?.(row.type);
 }
 
 /** Checkable iff weight ≥ 0 (bodyweight 0 allowed) and reps ≥ 1 (decision #5). */
