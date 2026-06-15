@@ -2,6 +2,11 @@ import { Pressable, Text, View, StyleSheet } from "react-native";
 
 import { NumericField } from "@/components/NumericField";
 import { RepStepper } from "@/components/RepStepper";
+import {
+  AnimatedPressable,
+  AnimatedText,
+  usePressInvert,
+} from "@/components/usePressFlash";
 import type { SetRowState } from "@/domain/setRows";
 import {
   border,
@@ -35,6 +40,9 @@ export function SetRow({
 }) {
   const checked = row.setId !== null;
   const active = isActive && !checked;
+  // Check button flashes to the inverse of its current (checked) colors.
+  const checkRest = checked ? { bg: colors.fg, fg: colors.bg } : { bg: colors.bg, fg: colors.fg };
+  const checkFlash = usePressInvert(checkRest, { bg: checkRest.fg, fg: checkRest.bg });
   return (
     <View style={[styles.row, checked && styles.checkedRow]}>
       <Pressable style={styles.body} onPress={onSelect} disabled={checked}>
@@ -55,14 +63,16 @@ export function SetRow({
         />
       </Pressable>
       <RepStepper reps={row.reps} onChange={onRepsChange} disabled={checked} />
-      <Pressable
+      <AnimatedPressable
         accessibilityRole="button"
         accessibilityLabel="toggle set logged"
-        style={styles.checkCell}
+        style={[styles.checkCell, checkFlash.bgStyle]}
         onPress={onToggleCheck}
+        onPressIn={checkFlash.onPressIn}
+        onPressOut={checkFlash.onPressOut}
       >
-        <Text style={[styles.check, checked && styles.invertedText]}>✓</Text>
-      </Pressable>
+        <AnimatedText style={[styles.check, checkFlash.labelStyle]}>✓</AnimatedText>
+      </AnimatedPressable>
     </View>
   );
 }
