@@ -109,6 +109,27 @@ test("unchecking a checked row deletes the set from the DB", async () => {
   expect(result.current.rows[0].setId).toBeNull();
 });
 
+// Regression: native touches queue, so weight/reps and the ✓ tap can land in
+// one batch before React commits a render. The old closure-over-`rows` check
+// then saw pre-update (null) values, failed isCheckable, and dropped the set.
+// Reading rows from a synchronously-written ref must persist the set anyway.
+test("checking in the same batch as weight/reps still persists the set", async () => {
+  const { result } = renderHook(() =>
+    useSetRows(sessionId, sessionExerciseId, jest.fn()),
+  );
+
+  await act(async () => {
+    result.current.addSet("work");
+    result.current.setWeight(0, 80);
+    result.current.setReps(0, 5);
+    result.current.toggleCheck(0);
+  });
+
+  const sets = listSetsForSessionExercise(fixture.db, sessionExerciseId);
+  expect(sets).toHaveLength(1);
+  expect(sets[0]).toMatchObject({ type: "work", weightKg: 80, reps: 5 });
+});
+
 // Regression: the deferred-commit model silently dropped a set on a second
 // tap (PR #2). With immediate persistence every tap is a real toggle, so a
 // confused re-tap can only delete-then-reinsert — never lose the set.
