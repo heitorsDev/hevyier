@@ -66,29 +66,31 @@ export function ExerciseBlock({ exercise, logged, lastTime, onLog, onRemove }: P
         ))}
       </View>
 
+      {/* Steppers and the log button sit on separate rows: at 360-393dp
+          a single row clips the button off the right edge. */}
       <View style={styles.pad}>
         <View style={styles.padColumn}>
           <Press small label="−" onPress={() => setWeightKg((w) => Math.max(0, w - WEIGHT_STEP))} />
           <Text style={styles.value}>{formatKg(weightKg)}</Text>
           <Press small label="+" onPress={() => setWeightKg((w) => w + WEIGHT_STEP)} />
+          <Text style={styles.unit}>kg</Text>
         </View>
         <View style={styles.padColumn}>
           <Press small label="−" onPress={() => setReps((r) => Math.max(1, r - 1))} />
           <Text style={styles.value}>{reps}</Text>
           <Press small label="+" onPress={() => setReps((r) => r + 1)} />
         </View>
+      </View>
+
+      <View style={styles.actionRow}>
+        <Press small label={`−${FINE_STEP}`} onPress={() => setWeightKg((w) => Math.max(0, w - FINE_STEP))} />
+        <Press small label={`+${FINE_STEP}`} onPress={() => setWeightKg((w) => w + FINE_STEP)} />
         <Press
           filled
           label="✓"
           style={styles.logButton}
           onPress={() => onLog({ weightKg, reps })}
         />
-      </View>
-
-      <View style={styles.fineRow}>
-        <Press small label={`−${FINE_STEP}`} onPress={() => setWeightKg((w) => Math.max(0, w - FINE_STEP))} />
-        <Press small label={`+${FINE_STEP}`} onPress={() => setWeightKg((w) => w + FINE_STEP)} />
-        <Text style={styles.unit}>kg · reps</Text>
       </View>
     </View>
   );
@@ -117,16 +119,22 @@ const styles = StyleSheet.create({
   },
   chipText: { color: colors.bg, fontFamily: fontFamilyMono, fontSize: fontSize.small, fontWeight: "700" },
   slot: { borderWidth: border, borderColor: colors.disabled, width: 56, height: 26 },
-  pad: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 4 },
+  pad: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginTop: 4,
+  },
   padColumn: { flexDirection: "row", alignItems: "center", gap: 6 },
   value: {
     color: colors.fg,
     fontFamily: fontFamilyMono,
     fontSize: fontSize.large,
-    minWidth: 62,
+    minWidth: 56,
     textAlign: "center",
   },
-  logButton: { flex: 1 },
-  fineRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  logButton: { flex: 1, height: 36 },
+  actionRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   unit: { color: colors.disabled, fontSize: fontSize.small, fontFamily: fontFamilyMono },
 });
