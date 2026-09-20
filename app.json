@@ -31,7 +31,6 @@
           }
         }
       ],
-      "expo-sqlite",
       "./plugins/withReleaseSigning",
       "./plugins/withJitpackBouncyCastleFix"
     ],

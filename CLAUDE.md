@@ -65,12 +65,10 @@
 
 ## Running on web
 
-- Web is browser-preview only. **Use `npm run web`** (builds `dist/` +
-  serves on `:8085` with cross-origin-isolation headers). Never use
-  `expo start --web`, `npm start` → web, or the IDE preview button — the
-  dev server can't set COOP/COEP on the top-level document, so
-  `SharedArrayBuffer` is unavailable and expo-sqlite's web backend throws.
-  Full explanation + troubleshooting in `docs/WEB.md`.
+- `npx expo start --web` (port 8081) with hot reload. The app has no native
+  storage dependency — state lives in AsyncStorage, which maps to
+  localStorage on web — so the browser is a full-fidelity preview and the
+  primary iteration loop. No build step, no `dist/`, no COOP/COEP headers.
 
 ## Code style
 
@@ -95,8 +93,9 @@
 
 ## Tests
 
-- Tests run with a single command: `<project-specific>`.
-- Every new function gets a test. Bug fixes get a regression test.
+- No test runner is installed. The app is verified by driving it in the
+  browser (`npx expo start --web`). Reinstate jest only if the domain
+  layer grows past what a manual pass can cover.
 - Mock external I/O (API, DB, filesystem) with named fake classes,
   not inline stubs.
 - Tests must be F.I.R.S.T: fast, independent, repeatable,
