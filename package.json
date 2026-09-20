@@ -36,7 +36,8 @@
     "start": "expo start",
     "android": "expo run:android",
     "lint": "expo lint",
-    "apk": "expo prebuild --platform android && cd android && ./gradlew assembleRelease"
+    "apk": "expo prebuild --platform android && cd android && ./gradlew assembleRelease",
+    "phone": "node scripts/phone.js"
   },
   "private": true
 }
