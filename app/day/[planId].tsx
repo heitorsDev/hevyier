@@ -70,7 +70,9 @@ export default function DayScreen() {
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 24 }}
+        // The scroll content stops above the pinned footer rather than
+        // running under it — the last exercise must stay reachable.
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
       >
         {plan.exercises.map((exercise) => (
           <ExerciseBlock
@@ -85,32 +87,35 @@ export default function DayScreen() {
             onRemove={(index) => removeSet(session.id, exercise.name, index)}
           />
         ))}
-
-        <View className="border-t border-border pt-4 gap-3">
-          <Text variant="mono" className="text-muted-foreground">
-            {totalSets(session)} séries · {Math.round(totalVolume(session))} kg
-          </Text>
-          <Button
-            size="lg"
-            onPress={() => {
-              finishSession(session.id, Date.now());
-              // Pop rather than push home, so home doesn't stack a second
-              // entry (and grow a back arrow). replace covers deep links,
-              // where there is nothing to pop to.
-              if (router.canGoBack()) router.back();
-              else router.replace("/");
-            }}
-          >
-            <Text>FINALIZAR</Text>
-          </Button>
-        </View>
       </ScrollView>
 
-      {rest.remaining !== null && (
-        <View style={{ paddingBottom: insets.bottom }}>
-          <RestTimerBar remaining={rest.remaining} onDismiss={rest.stop} />
-        </View>
-      )}
+      {rest.remaining !== null && <RestTimerBar remaining={rest.remaining} onDismiss={rest.stop} />}
+
+      {/* Pinned below the scroll area: finishing is reachable from any
+          point in a long session, and the running totals stay visible
+          while sets are logged. */}
+      <View
+        className="flex-row items-center gap-3 border-t border-border bg-background px-4 pt-3"
+        style={{ paddingBottom: insets.bottom + 12 }}
+      >
+        <Text variant="mono" className="flex-1 text-muted-foreground">
+          {totalSets(session)} séries · {Math.round(totalVolume(session))} kg
+        </Text>
+        <Button
+          size="lg"
+          onPress={() => {
+            finishSession(session.id, Date.now());
+            // Pop rather than push home, so home doesn't stack a second
+            // entry (and grow a back arrow). replace covers deep links,
+            // where there is nothing to pop to.
+            if (router.canGoBack()) router.back();
+            else router.replace("/");
+          }}
+        >
+          <Text>FINALIZAR</Text>
+        </Button>
+      </View>
+
     </View>
   );
 }
