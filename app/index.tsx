@@ -18,7 +18,7 @@ export default function Home() {
   function open(planId: string) {
     // Resuming means reusing the open session rather than stacking a new
     // one — there is only ever one session in flight.
-    if (!active) startSession(planId, Date.now());
+    if (!active) startSession(planId);
     router.push(`/day/${active ? active.planId : planId}`);
   }
 
@@ -57,7 +57,7 @@ export default function Home() {
         {recent.map((session) => (
           <Link key={session.id} href={`/history/${session.id}`} asChild>
             <Pressable>
-              <Separator className="bg-disabled" />
+              <Separator />
               <CardHeader className="py-2.5">
                 <Text>{planById(session.planId)?.name ?? session.planId}</Text>
                 <Text variant="monoMuted">

@@ -127,7 +127,10 @@ export function totalVolume(session: Session): number {
 
 // --- writes ------------------------------------------------------------
 
-export function startSession(planId: string, now: number): Session {
+export function startSession(planId: string): Session {
+  // The store reads the clock rather than taking it as an argument: callers
+  // are components, and a Date.now() in render scope is an impurity.
+  const now = Date.now();
   const session: Session = {
     id: String(now),
     planId,
@@ -139,11 +142,12 @@ export function startSession(planId: string, now: number): Session {
   return session;
 }
 
-export function addSet(sessionId: string, exercise: string, set: LoggedSet) {
+export function addSet(sessionId: string, exercise: string, set: Omit<LoggedSet, "loggedAt">) {
+  const logged: LoggedSet = { ...set, loggedAt: Date.now() };
   commit({
     sessions: db.sessions.map((s) =>
       s.id === sessionId
-        ? { ...s, sets: { ...s.sets, [exercise]: [...(s.sets[exercise] ?? []), set] } }
+        ? { ...s, sets: { ...s.sets, [exercise]: [...(s.sets[exercise] ?? []), logged] } }
         : s,
     ),
   });
@@ -165,7 +169,8 @@ export function removeSet(sessionId: string, exercise: string, index: number) {
   });
 }
 
-export function finishSession(sessionId: string, now: number) {
+export function finishSession(sessionId: string) {
+  const now = Date.now();
   commit({
     sessions: db.sessions
       // An abandoned session with nothing logged is noise, not history.

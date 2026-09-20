@@ -32,13 +32,19 @@ export default function DayScreen() {
   // Finishing clears the active session while this screen is still mounted;
   // without the latch the effect below would immediately open a new one.
   const opened = useRef(false);
-  if (session) opened.current = true;
   useEffect(() => {
+    // Latch first: finishing clears the active session while this screen is
+    // still mounted, and without the latch the branch below would open a
+    // fresh one the moment the old one closed.
+    if (session) {
+      opened.current = true;
+      return;
+    }
     // Entering the screen directly (deep link, reload) with no session open
     // starts one, so the screen always has somewhere to write.
-    if (!session && plan && !opened.current) {
+    if (plan && !opened.current) {
       opened.current = true;
-      startSession(plan.id, Date.now());
+      startSession(plan.id);
     }
   }, [session, plan]);
 
@@ -81,7 +87,7 @@ export default function DayScreen() {
             logged={session.sets[exercise.name] ?? []}
             lastTime={lastSetsFor(db, exercise.name, session.id)}
             onLog={(set) => {
-              addSet(session.id, exercise.name, { ...set, loggedAt: Date.now() });
+              addSet(session.id, exercise.name, set);
               rest.start(exercise.rest);
             }}
             onRemove={(index) => removeSet(session.id, exercise.name, index)}
@@ -104,7 +110,7 @@ export default function DayScreen() {
         <Button
           size="lg"
           onPress={() => {
-            finishSession(session.id, Date.now());
+            finishSession(session.id);
             // Pop rather than push home, so home doesn't stack a second
             // entry (and grow a back arrow). replace covers deep links,
             // where there is nothing to pop to.
