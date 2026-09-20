@@ -10,7 +10,7 @@ import { finishedSessions, totalSets, totalVolume, useDb } from "@/data/store";
 export default function HistoryList() {
   const sessions = finishedSessions(useDb());
   return (
-    <ScrollView className="flex-1 bg-bg" contentContainerStyle={{ padding: 16 }}>
+    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ padding: 16 }}>
       {sessions.length === 0 && <Text variant="monoMuted">SEM SESSÕES</Text>}
       {sessions.map((session) => (
         <Link key={session.id} href={`/history/${session.id}`} asChild>

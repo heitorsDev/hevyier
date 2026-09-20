@@ -18,16 +18,63 @@
 @source "./app";
 @source "./src";
 
-/* The design tokens, as CSS variables so both Tailwind utilities and the
-   Reusables components read the same palette. Monochrome by intent —
-   see PRODUCT.md. `static` emits every variable even when unused, which
-   keeps runtime-built class strings working. */
+/* The shadcn token schema, carried over from the magic-alliance config
+   (style base-mira, baseColor neutral, radius 0.45rem) so both projects
+   name colour the same way: background/foreground pairs, primary,
+   secondary, muted, accent, destructive, border, input, ring.
+
+   Only the dark palette is defined. app.json pins userInterfaceStyle to
+   dark and the app is used in a gym, so a light theme would be dead
+   weight — adding one later means a second block, not a rewrite.
+
+   Values are hex rather than the source oklch(): oklch support in the
+   native (non-web) style engine is not something this app should bet on,
+   and these are the exact sRGB equivalents.
+
+   `static` emits every variable even when unused, which keeps
+   runtime-built class strings working. */
 @theme static {
-  --color-bg: #000000;
-  --color-fg: #ffffff;
-  --color-muted: #888888;
-  --color-disabled: #444444;
-  --color-accent: #00ff00;
+  --color-background: #0a0a0a;
+  --color-foreground: #fafafa;
+
+  --color-card: #171717;
+  --color-card-foreground: #fafafa;
+
+  --color-popover: #171717;
+  --color-popover-foreground: #fafafa;
+
+  --color-primary: #193cb8;
+  --color-primary-foreground: #eff6ff;
+
+  --color-secondary: #27272a;
+  --color-secondary-foreground: #fafafa;
+
+  --color-muted: #262626;
+  --color-muted-foreground: #a1a1a1;
+
+  --color-accent: #262626;
+  --color-accent-foreground: #fafafa;
+
+  --color-destructive: #ff6467;
+
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-input: rgba(255, 255, 255, 0.15);
+  --color-ring: #737373;
+
+  --color-chart-1: #8ec5ff;
+  --color-chart-2: #2b7fff;
+  --color-chart-3: #155dfc;
+  --color-chart-4: #1447e6;
+  --color-chart-5: #193cb8;
+
+  /* The same 0.45rem base and multiplier ladder as the source config. */
+  --radius: 0.45rem;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
 
   --font-mono: monospace;
 }

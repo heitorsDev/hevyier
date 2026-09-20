@@ -23,7 +23,7 @@ export default function HistoryDetail() {
   ].filter((name) => session.sets[name]?.length);
 
   return (
-    <ScrollView className="flex-1 bg-bg" contentContainerStyle={{ padding: 16, gap: 4 }}>
+    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ padding: 16, gap: 4 }}>
       <Text variant="display">{plan?.name ?? session.planId}</Text>
       <Text variant="monoMuted" className="mb-2">
         {new Date(session.startedAt).toLocaleString("pt-BR")} · {totalSets(session)} séries ·{" "}
@@ -35,7 +35,7 @@ export default function HistoryDetail() {
           <Separator />
           <View className="py-2.5 gap-0.5">
             <Text>{name}</Text>
-            <Text variant="mono" className="text-muted">
+            <Text variant="mono" className="text-muted-foreground">
               {session.sets[name].map((s) => `${s.weightKg}×${s.reps}`).join("   ")}
             </Text>
           </View>
@@ -44,7 +44,7 @@ export default function HistoryDetail() {
 
       <View className="mt-6">
         <Button
-          variant="danger"
+          variant="destructive"
           size="lg"
           onPress={() => {
             deleteSession(session.id);

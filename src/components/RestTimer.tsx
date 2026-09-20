@@ -39,23 +39,23 @@ export function useRestTimer() {
 type Props = { remaining: number; onDismiss: () => void };
 
 export function RestTimerBar({ remaining, onDismiss }: Props) {
-  // Past zero the bar inverts — visible without reading the digits.
+  // Past zero the bar turns destructive — readable without the digits.
   const over = remaining <= 0;
   return (
     <View
       className={cn(
-        "flex-row items-center justify-between gap-3 px-4 py-2 border-t border-fg",
-        over ? "bg-fg" : "bg-bg",
+        "flex-row items-center justify-between gap-3 px-4 py-2 border-t border-border",
+        over ? "bg-destructive" : "bg-background",
       )}
     >
-      <Text variant="label" className={over ? "text-bg" : undefined}>
+      <Text variant="label" className={over ? "text-foreground" : undefined}>
         DESCANSO
       </Text>
-      <Text variant="display" className={cn("font-mono", over && "text-bg")}>
+      <Text variant="display" className={cn("font-mono", over && "text-foreground")}>
         {formatClock(remaining)}
       </Text>
-      <Button size="sm" className={over ? "border-bg" : undefined} onPress={onDismiss}>
-        <Text className={over ? "text-bg" : undefined}>✕</Text>
+      <Button size="sm" variant={over ? "outline" : "ghost"} onPress={onDismiss}>
+        <Text className={over ? "text-foreground" : undefined}>✕</Text>
       </Button>
     </View>
   );

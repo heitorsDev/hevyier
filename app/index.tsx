@@ -24,13 +24,13 @@ export default function Home() {
 
   return (
     <ScrollView
-      className="flex-1 bg-bg"
+      className="flex-1 bg-background"
       contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 24 }}
     >
       {active && (
         <Pressable onPress={() => open(active.planId)}>
-          <Card className="border-accent">
-            <Text variant="label" className="text-accent">
+          <Card className="border-primary">
+            <Text variant="label" className="text-primary">
               EM ANDAMENTO
             </Text>
             <Text variant="display">{planById(active.planId)?.name ?? active.planId}</Text>

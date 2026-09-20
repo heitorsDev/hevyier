@@ -4,22 +4,21 @@ import { createContext, use } from "react";
 import { type TextProps } from "react-native";
 
 import { Text as CSSText } from "@/components/ui/primitives";
-
 import { cn } from "@/lib/utils";
 
-const textVariants = cva("text-fg", {
+const textVariants = cva("text-foreground", {
   variants: {
     variant: {
-      default: "text-[18px]",
+      default: "text-base",
       // Screen titles and the set values that must read at arm's length.
-      display: "text-[28px] font-bold",
-      heading: "text-[18px] font-bold",
-      muted: "text-[14px] text-muted",
+      display: "text-3xl font-bold tracking-tight",
+      heading: "text-base font-semibold",
+      muted: "text-sm text-muted-foreground",
       // Numerals only: monospace keeps set columns aligned.
-      mono: "text-[18px] font-mono",
-      monoMuted: "text-[14px] font-mono text-muted",
-      // Section labels — wide tracking does the work colour would.
-      label: "text-[14px] text-muted tracking-[2px]",
+      mono: "text-base font-mono",
+      monoMuted: "text-sm font-mono text-muted-foreground",
+      // Section labels — the shadcn small-caps label treatment.
+      label: "text-xs font-medium tracking-widest text-muted-foreground uppercase",
     },
   },
   defaultVariants: { variant: "default" },

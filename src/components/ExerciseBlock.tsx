@@ -35,12 +35,12 @@ export function ExerciseBlock({ exercise, logged, lastTime, onLog, onRemove }: P
   const done = logged.length >= exercise.sets;
 
   return (
-    <View className="border-t border-fg py-3 gap-1.5">
+    <View className="border-t border-border py-3 gap-1.5">
       <CardHeader>
-        <Text variant="heading" className={done ? "text-muted" : undefined} numberOfLines={2}>
+        <Text variant="heading" className={done ? "text-muted-foreground" : undefined} numberOfLines={2}>
           {exercise.name}
         </Text>
-        <Text variant="mono" className="text-[14px]">
+        <Text variant="monoMuted">
           {exercise.sets}×{exercise.reps} · {exercise.rest}s
         </Text>
       </CardHeader>
@@ -74,40 +74,39 @@ export function ExerciseBlock({ exercise, logged, lastTime, onLog, onRemove }: P
           a single row clips the button off the right edge. */}
       <View className="flex-row items-center justify-between gap-2 mt-1">
         <View className="flex-row items-center gap-1.5">
-          <Button size="sm" onPress={() => setWeightKg((w) => Math.max(0, w - WEIGHT_STEP))}>
+          <Button variant="outline" size="icon" onPress={() => setWeightKg((w) => Math.max(0, w - WEIGHT_STEP))}>
             <Text>−</Text>
           </Button>
           <Text variant="display" className="font-mono min-w-14 text-center">
             {formatKg(weightKg)}
           </Text>
-          <Button size="sm" onPress={() => setWeightKg((w) => w + WEIGHT_STEP)}>
+          <Button variant="outline" size="icon" onPress={() => setWeightKg((w) => w + WEIGHT_STEP)}>
             <Text>+</Text>
           </Button>
-          <Text className="text-[14px] font-mono text-disabled">kg</Text>
+          <Text className="text-sm font-mono text-muted-foreground">kg</Text>
         </View>
 
         <View className="flex-row items-center gap-1.5">
-          <Button size="sm" onPress={() => setReps((r) => Math.max(1, r - 1))}>
+          <Button variant="outline" size="icon" onPress={() => setReps((r) => Math.max(1, r - 1))}>
             <Text>−</Text>
           </Button>
           <Text variant="display" className="font-mono min-w-14 text-center">
             {reps}
           </Text>
-          <Button size="sm" onPress={() => setReps((r) => r + 1)}>
+          <Button variant="outline" size="icon" onPress={() => setReps((r) => r + 1)}>
             <Text>+</Text>
           </Button>
         </View>
       </View>
 
       <View className="flex-row items-center gap-2">
-        <Button size="sm" onPress={() => setWeightKg((w) => Math.max(0, w - FINE_STEP))}>
+        <Button variant="secondary" size="sm" onPress={() => setWeightKg((w) => Math.max(0, w - FINE_STEP))}>
           <Text>−{FINE_STEP}</Text>
         </Button>
-        <Button size="sm" onPress={() => setWeightKg((w) => w + FINE_STEP)}>
+        <Button variant="secondary" size="sm" onPress={() => setWeightKg((w) => w + FINE_STEP)}>
           <Text>+{FINE_STEP}</Text>
         </Button>
         <Button
-          variant="primary"
           size="sm"
           className="flex-1"
           onPress={() => onLog({ weightKg, reps })}

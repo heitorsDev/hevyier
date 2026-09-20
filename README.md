@@ -30,7 +30,15 @@ movement across days without any join.
 The component layer follows the shadcn/ui model, ported to React Native:
 owned source in `src/components/ui/`, CVA variants, a `cn()` merge helper,
 and a `components.json` describing the aliases. Styling is Tailwind 4 via
-Nativewind 5; tokens live in the `@theme` block of `global.css`.
+Nativewind 5.
+
+The token schema is carried over from the magic-alliance shadcn config —
+style `base-mira`, neutral base, 0.45rem radius — so both projects name
+colour identically (`background`/`foreground` pairs, `primary`,
+`secondary`, `muted`, `accent`, `destructive`, `border`, `input`, `ring`).
+Only the dark palette is defined, and the values are the sRGB hex
+equivalents of the source `oklch()` so they also work in the native style
+engine. They live in the `@theme` block of `global.css`.
 
 Two constraints worth knowing before editing:
 

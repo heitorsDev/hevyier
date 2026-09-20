@@ -14,22 +14,39 @@ Track gym workouts with minimal friction. Solves three problems with Hevy: set r
 
 ## Brand Personality
 
-Sharp, modern, monochromatic. The app is a precision tool — it should feel like a stopwatch or a barbell, not a lifestyle product. Black and white. No softness, no rounding, no warmth-by-default.
+Shares its design language with magic-alliance: the shadcn token schema
+(style `base-mira`, neutral base, 0.45rem radius) in its dark palette —
+near-black background, raised card surfaces, blue primary, muted-
+foreground secondary text. One vocabulary across both projects means a
+component can move between them by copy-paste.
+
+The gym constraints still bind inside that vocabulary: large touch
+targets, monospace numerals so set columns align, and enough contrast to
+read under bright gym lighting.
 
 ## Anti-references
 
-- **Hevy**: polished consumer feel, soft rounded cards, pastel accents, lifestyle-adjacent aesthetic. Avoid all of it.
-- **MyFitnessPal**: bloated dashboard, sidebar clutter, gamification badges. Avoid information overload and feature noise.
-- **Generic fitness apps**: purple/gradient hero cards, trophy icons, "Let's crush it today!" UX copy, motivational microcopy. Avoid entirely.
-- **Health/wellness apps**: sage green, cream/sand backgrounds, breathing-room pacing, rounded-everything. This is a gym tool, not a meditation app.
+- **Hevy**: paywalled analytics and a set-logging flow that demands the
+  keyboard. The look is not the objection; the friction is.
+- **MyFitnessPal**: bloated dashboard, sidebar clutter, gamification
+  badges. Avoid information overload and feature noise.
+- **Generic fitness apps**: trophy icons, "Let's crush it today!" UX copy,
+  motivational microcopy. Avoid entirely.
 
 ## Design Principles
 
-1. **The set logs itself.** Every interaction on the logging screen must be achievable without a keyboard. Tapping beats typing.
-2. **Data is chrome-free.** Information sits at the surface; navigation, decoration, and affordance indicators recede. The UI is the data.
-3. **Monochrome earns its hierarchy.** Black and white is not a limitation — it forces weight, size, and spacing to do all the work. No color shortcuts.
-4. **Speed over ceremony.** No loading states for local data, no confirmation dialogs for reversible actions, no animated transitions that gate access to content.
-5. **Personal tool, not a product.** No onboarding flows, no empty-state motivational copy, no social hooks. Assume the user knows what they're doing.
+1. **The set logs itself.** Every interaction on the logging screen must
+   be achievable without a keyboard. Tapping beats typing.
+2. **Data is chrome-free.** Information sits at the surface; navigation
+   and decoration recede. The UI is the data.
+3. **Tokens, never literals.** Colour, radius and spacing come from the
+   shared token schema in `global.css`. A hardcoded hex is a bug.
+4. **Speed over ceremony.** No loading states for local data, no
+   confirmation dialogs for reversible actions, no animated transitions
+   that gate access to content.
+5. **Personal tool, not a product.** No onboarding flows, no empty-state
+   motivational copy, no social hooks. Assume the user knows what they
+   are doing.
 
 ## Accessibility & Inclusion
 

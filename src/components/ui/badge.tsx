@@ -2,26 +2,31 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { type ViewProps } from "react-native";
 
 import { View } from "@/components/ui/primitives";
-
 import { TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
-const badgeVariants = cva("px-2 py-1 border", {
+const badgeVariants = cva("items-center justify-center rounded-sm px-2 py-1 border", {
   variants: {
     variant: {
       // A logged set: filled, so completed work reads at a glance.
-      default: "bg-fg border-fg",
-      outline: "bg-transparent border-fg",
+      default: "bg-primary border-transparent",
+      secondary: "bg-secondary border-transparent",
+      outline: "bg-transparent border-border",
       // An unfilled prescribed set — present but not yet done.
-      slot: "bg-transparent border-disabled w-14 h-6.5",
+      slot: "bg-transparent border-border border-dashed w-14 h-7",
     },
   },
   defaultVariants: { variant: "default" },
 });
 
-const badgeTextVariants = cva("text-[14px] font-mono font-bold", {
+const badgeTextVariants = cva("text-sm font-mono font-medium", {
   variants: {
-    variant: { default: "text-bg", outline: "text-fg", slot: "text-disabled" },
+    variant: {
+      default: "text-primary-foreground",
+      secondary: "text-secondary-foreground",
+      outline: "text-foreground",
+      slot: "text-muted-foreground",
+    },
   },
   defaultVariants: { variant: "default" },
 });

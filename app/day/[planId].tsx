@@ -55,15 +55,15 @@ export default function DayScreen() {
   if (!session) return null;
 
   return (
-    <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
-      <View className="flex-row items-center gap-3 px-4 py-2.5 border-b border-fg">
+    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      <View className="flex-row items-center gap-3 px-4 py-2.5 border-b border-border">
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Text variant="display">←</Text>
         </Pressable>
         <Text variant="display" className="flex-1">
           {plan.name}
         </Text>
-        <Text variant="mono" className="text-muted">
+        <Text variant="mono" className="text-muted-foreground">
           {formatClock(elapsed)}
         </Text>
       </View>
@@ -86,12 +86,11 @@ export default function DayScreen() {
           />
         ))}
 
-        <View className="border-t border-fg pt-4 gap-3">
-          <Text variant="mono" className="text-muted">
+        <View className="border-t border-border pt-4 gap-3">
+          <Text variant="mono" className="text-muted-foreground">
             {totalSets(session)} séries · {Math.round(totalVolume(session))} kg
           </Text>
           <Button
-            variant="primary"
             size="lg"
             onPress={() => {
               finishSession(session.id, Date.now());
