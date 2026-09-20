@@ -1,0 +1,33 @@
+/* Tailwind is imported in pieces rather than as one `@import "tailwindcss"`.
+   React Native Web injects its own single-class rules UNLAYERED, and
+   unlayered CSS always wins the cascade over anything inside a @layer —
+   so utilities loaded the normal (layered) way would never apply. Theme
+   and preflight stay layered; utilities are imported bare so they sit at
+   the same cascade level as RNW's and win on source order. */
+@layer theme, base, components;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+/* Unlayered: this file declares @utility rules, which cannot be nested
+   inside a layer() import. */
+@import "./node_modules/nativewind/theme.css";
+@import "tailwindcss/utilities.css";
+
+/* Metro hands Tailwind the file contents without a project root, so
+   automatic source detection finds nothing — the scan roots are explicit. */
+@source "./app";
+@source "./src";
+
+/* The design tokens, as CSS variables so both Tailwind utilities and the
+   Reusables components read the same palette. Monochrome by intent —
+   see PRODUCT.md. `static` emits every variable even when unused, which
+   keeps runtime-built class strings working. */
+@theme static {
+  --color-bg: #000000;
+  --color-fg: #ffffff;
+  --color-muted: #888888;
+  --color-disabled: #444444;
+  --color-accent: #00ff00;
+
+  --font-mono: monospace;
+}
