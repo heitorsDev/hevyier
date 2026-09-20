@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
 
-import { Press } from "@/components/Press";
-import { border, colors, fontFamilyMono, fontSize } from "@/theme/tokens";
+import { Button } from "@/components/ui/button";
+import { View } from "@/components/ui/primitives";
+import { Text } from "@/components/ui/text";
+import { cn } from "@/lib/utils";
 
 export function formatClock(seconds: number): string {
   const sign = seconds < 0 ? "-" : "";
@@ -38,32 +39,24 @@ export function useRestTimer() {
 type Props = { remaining: number; onDismiss: () => void };
 
 export function RestTimerBar({ remaining, onDismiss }: Props) {
+  // Past zero the bar inverts — visible without reading the digits.
   const over = remaining <= 0;
   return (
-    <View style={[styles.bar, over && styles.barOver]}>
-      <Text style={[styles.label, over && styles.labelOver]}>DESCANSO</Text>
-      <Text style={[styles.clock, over && styles.labelOver]}>{formatClock(remaining)}</Text>
-      <Press small label="✕" onPress={onDismiss} style={over ? styles.dismissOver : undefined} />
+    <View
+      className={cn(
+        "flex-row items-center justify-between gap-3 px-4 py-2 border-t border-fg",
+        over ? "bg-fg" : "bg-bg",
+      )}
+    >
+      <Text variant="label" className={over ? "text-bg" : undefined}>
+        DESCANSO
+      </Text>
+      <Text variant="display" className={cn("font-mono", over && "text-bg")}>
+        {formatClock(remaining)}
+      </Text>
+      <Button size="sm" className={over ? "border-bg" : undefined} onPress={onDismiss}>
+        <Text className={over ? "text-bg" : undefined}>✕</Text>
+      </Button>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  bar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderTopWidth: border,
-    borderTopColor: colors.fg,
-    backgroundColor: colors.bg,
-  },
-  // Past zero the bar inverts — visible without reading the digits.
-  barOver: { backgroundColor: colors.fg },
-  label: { color: colors.muted, fontSize: fontSize.small, letterSpacing: 2 },
-  labelOver: { color: colors.bg },
-  clock: { color: colors.fg, fontFamily: fontFamilyMono, fontSize: fontSize.large, fontWeight: "700" },
-  dismissOver: { borderColor: colors.bg },
-});

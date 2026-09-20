@@ -72,6 +72,14 @@
 
 ## Code style
 
+- Styling is Tailwind classNames via Nativewind, not `StyleSheet.create`.
+  Reach for an inline `style` prop only for values Tailwind cannot express
+  (safe-area insets, `contentContainerStyle`).
+- UI primitives live in `src/components/ui/` and are owned copies in the
+  shadcn model — edit them in place rather than wrapping them.
+- Components import `View`/`Text`/`Pressable`/`ScrollView` from
+  `@/components/ui/primitives`, never from `react-native` directly: the
+  global className polyfill is off (see `metro.config.js`).
 - Functions: 4-20 lines. Split if longer.
 - Files: under 500 lines. Split by responsibility.
 - One thing per function, one responsibility per module (SRP).

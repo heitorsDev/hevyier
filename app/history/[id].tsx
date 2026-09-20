@@ -1,10 +1,11 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { Press } from "@/components/Press";
+import { Button } from "@/components/ui/button";
+import { ScrollView, View } from "@/components/ui/primitives";
+import { Separator } from "@/components/ui/separator";
+import { Text } from "@/components/ui/text";
 import { planById } from "@/data/plans";
 import { deleteSession, sessionById, totalSets, totalVolume, useDb } from "@/data/store";
-import { border, colors, fontFamilyMono, fontSize } from "@/theme/tokens";
 
 export default function HistoryDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -22,42 +23,37 @@ export default function HistoryDetail() {
   ].filter((name) => session.sets[name]?.length);
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>{plan?.name ?? session.planId}</Text>
-      <Text style={styles.meta}>
+    <ScrollView className="flex-1 bg-bg" contentContainerStyle={{ padding: 16, gap: 4 }}>
+      <Text variant="display">{plan?.name ?? session.planId}</Text>
+      <Text variant="monoMuted" className="mb-2">
         {new Date(session.startedAt).toLocaleString("pt-BR")} · {totalSets(session)} séries ·{" "}
         {Math.round(totalVolume(session))} kg
       </Text>
 
       {ordered.map((name) => (
-        <View key={name} style={styles.block}>
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.sets}>
-            {session.sets[name].map((s) => `${s.weightKg}×${s.reps}`).join("   ")}
-          </Text>
+        <View key={name}>
+          <Separator />
+          <View className="py-2.5 gap-0.5">
+            <Text>{name}</Text>
+            <Text variant="mono" className="text-muted">
+              {session.sets[name].map((s) => `${s.weightKg}×${s.reps}`).join("   ")}
+            </Text>
+          </View>
         </View>
       ))}
 
-      <View style={styles.footer}>
-        <Press
-          label="APAGAR SESSÃO"
+      <View className="mt-6">
+        <Button
+          variant="danger"
+          size="lg"
           onPress={() => {
             deleteSession(session.id);
             router.back();
           }}
-        />
+        >
+          <Text>APAGAR SESSÃO</Text>
+        </Button>
       </View>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 16, gap: 4 },
-  title: { color: colors.fg, fontSize: fontSize.large, fontWeight: "700" },
-  meta: { color: colors.muted, fontSize: fontSize.small, fontFamily: fontFamilyMono, marginBottom: 8 },
-  block: { borderTopWidth: border, borderTopColor: colors.fg, paddingVertical: 10, gap: 2 },
-  name: { color: colors.fg, fontSize: fontSize.body },
-  sets: { color: colors.muted, fontFamily: fontFamilyMono, fontSize: fontSize.body },
-  footer: { marginTop: 24 },
-});

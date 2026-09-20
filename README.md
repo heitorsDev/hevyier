@@ -24,3 +24,19 @@ npm run apk            # signed release APK
 
 Sets are keyed by exercise *name*, so the "ant:" reference line follows a
 movement across days without any join.
+
+## UI
+
+The component layer follows the shadcn/ui model, ported to React Native:
+owned source in `src/components/ui/`, CVA variants, a `cn()` merge helper,
+and a `components.json` describing the aliases. Styling is Tailwind 4 via
+Nativewind 5; tokens live in the `@theme` block of `global.css`.
+
+Two constraints worth knowing before editing:
+
+- Import `View`/`Text`/`Pressable`/`ScrollView` from
+  `@/components/ui/primitives`. The global `className` polyfill is disabled
+  because it breaks RN 0.85's lazy `FlatList` getter.
+- Tailwind's utilities are imported **unlayered** in `global.css`. React
+  Native Web injects its own classes unlayered, and unlayered CSS always
+  beats `@layer utilities` — layered utilities silently never apply.

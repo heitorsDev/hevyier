@@ -1,11 +1,12 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ExerciseBlock } from "@/components/ExerciseBlock";
-import { Press } from "@/components/Press";
 import { RestTimerBar, formatClock, useRestTimer } from "@/components/RestTimer";
+import { Button } from "@/components/ui/button";
+import { Pressable, ScrollView, View } from "@/components/ui/primitives";
+import { Text } from "@/components/ui/text";
 import { planById } from "@/data/plans";
 import {
   activeSession,
@@ -18,7 +19,6 @@ import {
   totalVolume,
   useDb,
 } from "@/data/store";
-import { border, colors, fontFamilyMono, fontSize } from "@/theme/tokens";
 
 export default function DayScreen() {
   const { planId } = useLocalSearchParams<{ planId: string }>();
@@ -55,18 +55,22 @@ export default function DayScreen() {
   if (!session) return null;
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
+    <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
+      <View className="flex-row items-center gap-3 px-4 py-2.5 border-b border-fg">
         <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Text style={styles.back}>←</Text>
+          <Text variant="display">←</Text>
         </Pressable>
-        <Text style={styles.title}>{plan.name}</Text>
-        <Text style={styles.clock}>{formatClock(elapsed)}</Text>
+        <Text variant="display" className="flex-1">
+          {plan.name}
+        </Text>
+        <Text variant="mono" className="text-muted">
+          {formatClock(elapsed)}
+        </Text>
       </View>
 
       <ScrollView
-        style={styles.list}
-        contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 24 }]}
+        className="flex-1"
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 24 }}
       >
         {plan.exercises.map((exercise) => (
           <ExerciseBlock
@@ -82,13 +86,13 @@ export default function DayScreen() {
           />
         ))}
 
-        <View style={styles.footer}>
-          <Text style={styles.summary}>
+        <View className="border-t border-fg pt-4 gap-3">
+          <Text variant="mono" className="text-muted">
             {totalSets(session)} séries · {Math.round(totalVolume(session))} kg
           </Text>
-          <Press
-            filled
-            label="FINALIZAR"
+          <Button
+            variant="primary"
+            size="lg"
             onPress={() => {
               finishSession(session.id, Date.now());
               // Pop rather than push home, so home doesn't stack a second
@@ -97,7 +101,9 @@ export default function DayScreen() {
               if (router.canGoBack()) router.back();
               else router.replace("/");
             }}
-          />
+          >
+            <Text>FINALIZAR</Text>
+          </Button>
         </View>
       </ScrollView>
 
@@ -109,23 +115,3 @@ export default function DayScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: border,
-    borderBottomColor: colors.fg,
-  },
-  back: { color: colors.fg, fontSize: fontSize.large },
-  title: { color: colors.fg, fontSize: fontSize.large, fontWeight: "700", flex: 1 },
-  clock: { color: colors.muted, fontFamily: fontFamilyMono, fontSize: fontSize.body },
-  list: { flex: 1 },
-  listContent: { paddingHorizontal: 16 },
-  footer: { borderTopWidth: border, borderTopColor: colors.fg, paddingTop: 16, gap: 12 },
-  summary: { color: colors.muted, fontFamily: fontFamilyMono, fontSize: fontSize.body },
-});
